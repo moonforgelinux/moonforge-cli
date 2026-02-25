@@ -1,0 +1,32 @@
+[project]
+name = "moonforgecli"
+description = "Command line tool for Moonforge Linux"
+version = "2026.1"
+
+authors = [
+  { name = "Emmanuele Bassi", email = "ebassi@igalia.com" },
+]
+
+readme = "README.md"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Installation/Setup",
+  "Topic :: Utilities",
+]
+
+license = "MIT"
+license-files = [
+  "LICENSES/*.txt",
+]
+
+requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://github.com/moonforgelinux/moonforge-cli"
+Issues = "https://github.com/moonforgelinux/moonforge-cli/issues"
+
+[project.scripts]
+moonforge = "moonforgecli:moonforgemain.main"
