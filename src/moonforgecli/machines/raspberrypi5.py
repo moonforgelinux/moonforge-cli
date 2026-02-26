@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Igalia S.L.
 # SPDX-License-Identifier: MIT
 
-from . import Fragment, Machine, MachineInclude
+from . import Machine, MachineFragment, MachineInclude
 
 
 RPI5_CONF = ['WKS_FILE = "moonforge-image-base-raspberrypi.wks.in"']
@@ -17,6 +17,6 @@ RPI5_MACHINE = Machine(name="raspberrypi5",
                          MachineInclude("meta-moonforge", "kas/include/layer/meta-moonforge-raspberrypi.yml"),
                        ],
                        local_conf=[
-                         Fragment(section='meta-moonforge-raspberrypi', text=RPI5_CONF, weight=30),
-                         Fragment(section='meta-moonforge-distro', text=RPI5_DISTRO_CONF, weight=20),
+                         MachineFragment(section='meta-moonforge-raspberrypi', text=RPI5_CONF, weight=30),
+                         MachineFragment(section='meta-moonforge-distro', text=RPI5_DISTRO_CONF, weight=20),
                        ])

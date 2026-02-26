@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 
 from . import log, kas
+from .features import get_feature
 from .machines import get_machine
 
 
@@ -74,10 +75,11 @@ def sanitize_project_name(name: str) -> str:
 
 
 class Project:
-    def __init__(self, name: str, path: Path, machine: Machine):
+    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature]):
         self._name = name
         self._path = path
         self._machine = machine
+        self._features = features
 
     @property
     def name(self) -> str:
@@ -92,6 +94,10 @@ class Project:
         return self._machine
 
     @property
+    def features(self) -> list[Feature]:
+        return self._features
+
+    @property
     def local_repo_name(self) -> str:
         return sanitize_layer_name(self._name)
 
@@ -103,6 +109,8 @@ class Project:
         kf.add_local_repo(name=f"{self.local_repo_name}", layers=[f"{self.local_repo_name}-distro"])
         kf.set_distro(self._name)
         kf.set_machine(self._machine)
+        for feat in self._features:
+            kf.add_feature(feat)
         return str(kf)
 
 
@@ -158,11 +166,11 @@ def add_kas_dir(project: Project) -> None:
         f.write(project.to_kas())
 
 
-def init_project(path: str, project_name: str, machine: Machine) -> int:
+def init_project(path: str, project_name: str, machine: Machine, features: list[Feature]) -> int:
     project_path = Path(path)
     if not project_path.exists():
         os.makedirs(project_path)
-    project = Project(project_name, project_path, machine)
+    project = Project(project_name, project_path, machine, features)
     add_top_level_files(project)
     add_conf_dir(project)
     add_kas_dir(project)
@@ -172,6 +180,7 @@ def init_project(path: str, project_name: str, machine: Machine) -> int:
 def add_args(parser):
     parser.add_argument("--name", metavar="NAME", help="the project name")
     parser.add_argument("--machine", metavar="MACHINE", default="qemu", help="the target machine")
+    parser.add_argument("--feature", metavar="FEATURE", action="append", dest="features", default=[], help="enabled features")
     parser.add_argument("path", metavar="PATH", default=".", help="the path of the project")
 
 
@@ -188,4 +197,10 @@ def run(options):
     if machine is None:
         log.error(f"Invalid target machine {options.machine}. "
                    "Use 'list-machines' to list the available machines.")
-    return init_project(project_path, project_name, machine)
+    features = []
+    for feat in options.features:
+        f = get_feature(feat)
+        if f is None:
+            log.error(f"Invalid feature {feat}.")
+        features.append(f)
+    return init_project(project_path, project_name, machine, features)

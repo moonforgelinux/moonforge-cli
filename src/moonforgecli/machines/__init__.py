@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class Fragment:
+class MachineFragment:
     """Class for weighted template fragments."""
     section: str
     text: list[str]
@@ -24,7 +24,7 @@ class Machine:
     name: str
     description: str
     includes: list[MachineInclude] = field(default_factory=list)
-    local_conf: list[Fragment] = field(default_factory=list)
+    local_conf: list[MachineFragment] = field(default_factory=list)
     default: bool = False
 
 
@@ -38,8 +38,8 @@ def available_machines() -> list[Machine]:
     ]
 
 
-def get_machine(machine: str) -> Machine | None:
-    for m in available_machines():
-        if m.name == machine:
-            return m
+def get_machine(name: str) -> Machine | None:
+    for machine in available_machines():
+        if machine.name == name:
+            return machine
     return None

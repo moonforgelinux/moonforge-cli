@@ -7,7 +7,7 @@ import sys
 import traceback
 
 from . import log
-from . import init, list_machines
+from . import init, list_features, list_machines
 
 
 VERSION = "2026.1"
@@ -34,6 +34,10 @@ class MoonforgeApp:
                          add_args_func=init.add_args,
                          run_func=init.run,
                          help_msg=init.HELP_MSG)
+        self.add_command('list-features',
+                         add_args_func=list_features.add_args,
+                         run_func=list_features.run,
+                         help_msg=list_features.HELP_MSG)
         self.add_command('list-machines',
                          add_args_func=list_machines.add_args,
                          run_func=list_machines.run,

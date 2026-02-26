@@ -3,7 +3,8 @@
 
 from dataclasses import dataclass, field
 
-from .machines import Fragment, Machine
+from .features import FeatureFragment, Feature
+from .machines import MachineFragment, Machine
 
 
 @dataclass
@@ -18,6 +19,13 @@ class KasHeader:
     """Class for kas header blocks."""
     includes: list[KasInclude] = field(default_factory=list)
     version: int = 16
+
+
+@dataclass
+class KasFragment:
+    section: str
+    text: list[str]
+    weight: int = 0
 
 
 @dataclass
@@ -37,6 +45,8 @@ class KasFile:
         self._repos: list[KasRepo] = []
         self._distro: str | None = None
         self._machine: Machine | None = None
+        self._features: list[Feature] | None = []
+        self._local_conf: list[KasFragment] = []
 
     def add_include(self, repo: str, file: str) -> None:
         if self._header is None:
@@ -56,8 +66,21 @@ class KasFile:
 
     def set_machine(self, machine: Machine) -> None:
         self._machine = machine
-        for inc in self._machine.includes:
+        for inc in machine.includes:
             self.add_include(inc.repo, inc.file)
+        for frag in machine.local_conf:
+            self._local_conf.append(KasFragment(section=frag.section,
+                                                weight=frag.weight,
+                                                text=frag.text))
+
+    def add_feature(self, feature: Feature) -> None:
+        self._features.append(feature)
+        for inc in feature.includes:
+            self.add_include(inc.repo, inc.file)
+        for frag in feature.local_conf:
+            self._local_conf.append(KasFragment(section=frag.section,
+                                                weight=frag.weight,
+                                                text=frag.text))
 
     def __str__(self) -> str:
         res = []
@@ -70,18 +93,18 @@ class KasFile:
                     res.append(f"    - repo: {i.repo}")
                     res.append(f"      file: {i.file}")
             res.append("")
+        if len(self._local_conf) > 0:
+            res.append("local_conf_header:")
+            for frag in self._local_conf:
+                res.append(f"  {frag.weight}_{frag.section}: |")
+                for t in frag.text:
+                    res.append(f"    {t}")
+            res.append("")
         if self._distro is not None:
             res.append(f"distro: {self._distro}")
             res.append("")
         if self._machine is not None:
             res.append(f"machine: {self._machine.name}")
-            if self._machine.local_conf is not None:
-                res.append("")
-                res.append("local_conf_header:")
-                for f in self._machine.local_conf:
-                    res.append(f"  {f.weight}_{f.section}: |")
-                    for t in f.text:
-                        res.append(f"    {t}")
             res.append("")
         if len(self._repos) > 0:
             res.append("repos:")
