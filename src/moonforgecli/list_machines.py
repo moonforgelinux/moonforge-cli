@@ -23,9 +23,10 @@ def run(options) -> 0:
     for m in available_machines():
         name = str(AnsiEscape(text=m.name, color='GREEN'))
         if m.default:
-            default = " ✅"
+            default = " (default: ✅)"
         else:
             default = ""
-        res.append(f"- {name.ljust(max_name_len)}: {m.description}{default}")
+        pad = " ".ljust(max_name_len - len(m.name) + 1)
+        res.append(f"- {name}:{pad}{m.description}{default}")
     print("\n".join(res))
     return 0

@@ -6,7 +6,8 @@ import os
 
 from pathlib import Path
 
-from . import log
+from . import log, kas
+from .machines import get_machine
 
 
 HELP_MSG = "Initialize a Moonforge project"
@@ -59,26 +60,6 @@ IMAGE_BASE_FORMAT = """# {project_name} image base
 IMAGE_FEATURES += "ssh-server-openssh"
 """
 
-KAS_IMAGE_BASE_FORMAT = """# {project_name}
-header:
-  version: 16
-  includes:
-    - repo: meta-moonforge
-      file: kas/include/layer/meta-moonforge-distro.yml
-
-repos:
-  meta-moonforge:
-    url: https://github.com/moonforgelinux/meta-moonforge.git
-    commit: ce8ff3de25dda42215b7c8dfd201fd39c3960b1f
-    branch: main
-  {layer_name}:
-    layers:
-      meta-{project_name}-distro:
-
-distro: {project_name}
-"""
-
-
 def sanitize_layer_name(name: str) -> str:
     tokens = [x.lower() for x in name.split()]
     res = "-".join(tokens)
@@ -92,70 +73,105 @@ def sanitize_project_name(name: str) -> str:
     return tokens[0]
 
 
-def add_top_level_files(path: Path, project_name: str) -> None:
-    log.info(f"Add top level files for {project_name}")
-    with open(path / "README.md", "w", encoding="utf-8") as f:
-        f.write(README_FORMAT.format(project_name=project_name))
+class Project:
+    def __init__(self, name: str, path: Path, machine: Machine):
+        self._name = name
+        self._path = path
+        self._machine = machine
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def path(self) -> Path:
+        return self._path
+
+    @property
+    def machine(self) -> Machine:
+        return self._machine
+
+    @property
+    def local_repo_name(self) -> str:
+        return sanitize_layer_name(self._name)
+
+    def to_kas(self) -> str:
+        kf = kas.KasFile()
+        kf.add_include("meta-moonforge", "kas/include/layer/meta-moonforge-distro.yml")
+        kf.add_repo(name="meta-moonforge", url="https://github.com/moonforgelinux/meta-moonforge.git",
+                    commit="ce8ff3de25dda42215b7c8dfd201fd39c3960b1f", branch="main")
+        kf.add_local_repo(name=f"{self.local_repo_name}", layers=[f"{self.local_repo_name}-distro"])
+        kf.set_distro(self._name)
+        kf.set_machine(self._machine)
+        return str(kf)
 
 
-def add_conf_dir(path: Path, project: str) -> None:
-    log.info(f"Creating layer configuration for {project}")
+def add_top_level_files(project: Project) -> None:
+    log.info(f"Add top level files for {project.name}")
+    with open(project.path / "README.md", "w", encoding="utf-8") as f:
+        f.write(README_FORMAT.format(project_name=project.name))
 
-    project_name = sanitize_project_name(project)
-    layer_name = sanitize_layer_name(project)
 
-    log.info(f"Creating layer meta-{project_name}-distro for {project_name}")
-    distro_path = path / f"meta-{project_name}-distro"
+def add_conf_dir(project: Project) -> None:
+    log.info(f"Creating layer configuration for {project.name}")
+
+    project_name = sanitize_project_name(project.name)
+    layer_name = sanitize_layer_name(project.name)
+
+    log.info(f"Creating layer meta-{project_name}-distro for {project.name}")
+    distro_path = project.path / f"meta-{project_name}-distro"
     os.makedirs(distro_path, exist_ok=True)
     with open(distro_path / "README.md", "w", encoding="utf-8") as f:
         f.write(DISTRO_README_FORMAT.format(project_name=project_name, layer_name=layer_name))
 
-    log.info(f"Creating distro layer for {project_name}")
+    log.info(f"Creating distro layer for {project.name}")
     conf_path = distro_path / "conf"
     os.makedirs(conf_path, exist_ok=True)
 
-    log.info(f"Creating layer.conf for {project_name}")
+    log.info(f"Creating layer.conf for {project.name}")
     layer_conf_path = conf_path / "layer.conf"
     with open(layer_conf_path, "w", encoding="utf-8") as f:
         f.write(LAYER_CONF_FORMAT.format(project_name=project_name, layer_name=layer_name))
 
-    log.info(f"Creating {project_name}.conf distro configuration for {project_name}")
+    log.info(f"Creating {project_name}.conf distro configuration for {project.name}")
     os.makedirs(conf_path / "distro", exist_ok=True)
     project_conf = f"{project_name}.conf"
     project_conf_path = conf_path / "distro" / project_conf
     with open(project_conf_path, "w", encoding="utf-8") as f:
         f.write(PROJECT_CONF_FORMAT.format(project_name=project_name, layer_name=layer_name))
 
-    log.info(f"Creating image recipe for {project_name}")
+    log.info(f"Creating image recipe for {project.name}")
     images_path = conf_path / "recipes-core" / "images"
     os.makedirs(images_path, exist_ok=True)
     with open(images_path / "moonforge-image-base.bbappend", "w", encoding="utf-8") as f:
         f.write(IMAGE_BASE_FORMAT.format(project_name=project_name, layer_name=layer_name))
 
 
-def add_kas_dir(path: Path, project: str) -> None:
-    project_name = sanitize_project_name(project)
-    layer_name = sanitize_layer_name(project)
+def add_kas_dir(project: Project) -> None:
+    project_name = sanitize_project_name(project.name)
+    layer_name = sanitize_layer_name(project.name)
 
-    log.info(f"Creating kas configuration for {project}")
-    kas_path = path / "kas"
+    log.info(f"Creating kas configuration for {project.name}")
+    kas_path = project.path / "kas"
     os.makedirs(kas_path, exist_ok=True)
     with open(kas_path / f"{project_name}-image-base.yml", "w", encoding="utf-8") as f:
-        f.write(KAS_IMAGE_BASE_FORMAT.format(project_name=project_name, layer_name=layer_name))
+        f.write(project.to_kas())
 
 
-def init_project(path: str, project_name: str) -> int:
+def init_project(path: str, project_name: str, machine: Machine) -> int:
     project_path = Path(path)
     if not project_path.exists():
         os.makedirs(project_path)
-    add_top_level_files(project_path, project_name)
-    add_conf_dir(project_path, project_name)
-    add_kas_dir(project_path, project_name)
+    project = Project(project_name, project_path, machine)
+    add_top_level_files(project)
+    add_conf_dir(project)
+    add_kas_dir(project)
     return 0
 
 
 def add_args(parser):
     parser.add_argument("--name", metavar="NAME", help="the project name")
+    parser.add_argument("--machine", metavar="MACHINE", default="qemu", help="the target machine")
     parser.add_argument("path", metavar="PATH", default=".", help="the path of the project")
 
 
@@ -168,4 +184,8 @@ def run(options):
     path = Path(project_path)
     if path.exists() and not path.is_dir():
         log.error(f"Project path {path} exists and is not a directory.")
-    return init_project(project_path, project_name)
+    machine = get_machine(options.machine)
+    if machine is None:
+        log.error(f"Invalid target machine {options.machine}. "
+                   "Use 'list-machines' to list the available machines.")
+    return init_project(project_path, project_name, machine)

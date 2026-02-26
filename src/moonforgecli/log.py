@@ -64,6 +64,9 @@ class AnsiEscape(object):
         self.mods = kwargs.get('mods', 'DEFAULT')
 
     def __str__(self):
+        global log_colorize_output
+        if not log_colorize_output:
+            return self.text
         if self.mods != 'DEFAULT':
             return f'{AnsiEscape.char}{modifiers[self.mods]}{self.text}{AnsiEscape.char}{modifiers["NONE"]}'
         return f'{AnsiEscape.char}{colors[self.color]}{self.text}{AnsiEscape.char}{colors["NONE"]}'
