@@ -149,7 +149,7 @@ def add_conf_dir(project: Project) -> None:
         f.write(PROJECT_CONF_FORMAT.format(project_name=project_name, layer_name=layer_name))
 
     log.info(f"Creating image recipe for {project.name}")
-    images_path = conf_path / "recipes-core" / "images"
+    images_path = distro_path / "recipes-core" / "images"
     os.makedirs(images_path, exist_ok=True)
     with open(images_path / "moonforge-image-base.bbappend", "w", encoding="utf-8") as f:
         f.write(IMAGE_BASE_FORMAT.format(project_name=project_name, layer_name=layer_name))
