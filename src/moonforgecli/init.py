@@ -41,12 +41,12 @@ derivative distribution.
 LAYER_CONF_FORMAT = """# {project_name} layer configuration
 BBPATH .= ":${{LAYERDIR}}"
 BBFILES += "${{LAYERDIR}}/recipes-*/*/*.bb ${{LAYERDIR}}/recipes-*/*/*.bbappend"
-BBFILE_COLLECTION += "{layer_name}"
-BBFILE_PATTERN_{layer_name} = "^${{LAYERDIR}}/"
-BBFILE_PRIORITY_{layer_name} = "20"
+BBFILE_COLLECTION += "{layer_name}-distro"
+BBFILE_PATTERN_{layer_name}-distro = "^${{LAYERDIR}}/"
+BBFILE_PRIORITY_{layer_name}-distro = "20"
 
-LAYERDEPENDS_{layer_name} = "core meta-moonforge-distro"
-LAYERSERIES_COMPAT_{layer_name} = "scarthgap"
+LAYERDEPENDS_{layer_name}-distro = "core meta-moonforge-distro"
+LAYERSERIES_COMPAT_{layer_name}-distro = "scarthgap"
 """
 
 PROJECT_CONF_FORMAT = """# {project_name} distro configuration
