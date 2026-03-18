@@ -21,7 +21,7 @@ RAUC_FEATURE = Feature(name="rauc",
                        ],
                        machine_overrides={
                          "wks_file": {
-                           "qemu": [
+                           "qemux86-64": [
                              FeatureFragment(section="meta-moonforge-rauc-qemu",
                                              weight=40,
                                              text=['WKS_FILE = "moonforge-image-rauc-qemux86-64.wks.in"']),
@@ -33,7 +33,7 @@ RAUC_FEATURE = Feature(name="rauc",
                            ],
                          },
                          "includes": {
-                           "qemu": [
+                           "qemux86-64": [
                              FeatureInclude("meta-moonforge", "kas/include/layer/meta-moonforge-rauc-qemu.yml"),
                            ],
                            "raspberrypi5": [

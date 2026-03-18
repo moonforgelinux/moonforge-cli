@@ -4,7 +4,7 @@
 from . import Machine, MachineFragment, MachineInclude
 
 
-QEMU_MACHINE = Machine(name="qemu",
+QEMU_MACHINE = Machine(name="qemux86-64",
                        description="QEMU x86_64 builds",
                        includes=[
                          MachineInclude("meta-moonforge", "kas/include/layer/meta-moonforge-qemu.yml")

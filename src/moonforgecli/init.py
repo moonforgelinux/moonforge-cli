@@ -181,7 +181,7 @@ def init_project(path: str, project_name: str, machine: Machine, features: list[
 
 def add_args(parser):
     parser.add_argument("--name", metavar="NAME", help="the project name")
-    parser.add_argument("--machine", metavar="MACHINE", default="qemu", help="the target machine")
+    parser.add_argument("--machine", metavar="MACHINE", default="qemux86-64", help="the target machine")
     parser.add_argument("--feature", metavar="FEATURE", action="append", dest="features", default=[], help="enabled features")
     parser.add_argument("path", metavar="PATH", default=".", help="the path of the project")
 
