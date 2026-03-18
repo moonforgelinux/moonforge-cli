@@ -164,7 +164,7 @@ def add_kas_dir(project: Project) -> None:
     log.info(f"Creating kas configuration for {project.name}")
     kas_path = project.path / "kas"
     os.makedirs(kas_path, exist_ok=True)
-    with open(kas_path / f"{project_name}-image-base.yml", "w", encoding="utf-8") as f:
+    with open(kas_path / f"{project_name}-image-base-{project.machine.name}.yml", "w", encoding="utf-8") as f:
         f.write(project.to_kas())
 
 
