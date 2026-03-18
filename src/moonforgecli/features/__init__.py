@@ -18,6 +18,11 @@ class FeatureInclude:
     file: str
 
 
+type FeatureIncludeOverride = dict[str, list[FeatureInclude]]
+type FeatureFragmentOverride = dict[str, list[FeatureFragment]]
+type FeatureOverride = FeatureIncludeOverride | FeatureFragmentOverride
+
+
 @dataclass
 class Feature:
     """Class for feature templates."""
@@ -25,6 +30,7 @@ class Feature:
     description: str
     includes: list[FeatureInclude] = field(default_factory=list)
     local_conf: list[FeatureFragment] = field(default_factory=list)
+    machine_overrides: dict[str, FeatureOverride] | None = field(default_factory=dict)
 
 
 def available_features() -> list[Features]:
