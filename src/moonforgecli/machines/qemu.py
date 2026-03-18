@@ -4,14 +4,14 @@
 from . import Machine, MachineFragment, MachineInclude
 
 
-QEMU_LOCAL_CONF = ['WKS_FILE = "moonforge-image-base-qemux86-64.wks.in"']
-
 QEMU_MACHINE = Machine(name="qemu",
                        description="QEMU x86_64 builds",
                        includes=[
                          MachineInclude("meta-moonforge", "kas/include/layer/meta-moonforge-qemu.yml")
                        ],
-                       local_conf=[
-                         MachineFragment(section='meta-moonforge-qemu', text=QEMU_LOCAL_CONF, weight=20)
+                       wks_file=[
+                         MachineFragment(section="meta-moonforge-qemu",
+                                         weight=20,
+                                         text=['WKS_FILE = "moonforge-image-base-qemux86-64.wks.in"']),
                        ],
                        default=True)

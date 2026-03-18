@@ -25,6 +25,7 @@ class Machine:
     description: str
     includes: list[MachineInclude] = field(default_factory=list)
     local_conf: list[MachineFragment] = field(default_factory=list)
+    wks_file: list[MachineFragment] = field(default_factory=list)
     default: bool = False
 
 
