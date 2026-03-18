@@ -41,6 +41,8 @@ def available_machines() -> list[Machine]:
 
 def get_machine(name: str) -> Machine | None:
     for machine in available_machines():
+        if name == "default" and machine.default:
+            return machine
         if machine.name == name:
             return machine
     return None
