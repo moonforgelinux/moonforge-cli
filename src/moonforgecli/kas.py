@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from .features import FeatureFragment, Feature
 from .machines import MachineFragment, Machine
 
+from . import log
+
 
 @dataclass
 class KasInclude:
@@ -47,6 +49,7 @@ class KasFile:
         self._machine: Machine | None = None
         self._features: list[Feature] | None = []
         self._local_conf: list[KasFragment] = []
+        self._wks: list[KasFragment] = []
 
     def add_include(self, repo: str, file: str) -> None:
         if self._header is None:
@@ -54,10 +57,18 @@ class KasFile:
         self._header.includes.append(KasInclude(repo, file))
 
     def add_repo(self, name: str, url: str, commit: str | None = None, branch: str = None) -> None:
+        for r in self._repos:
+            if r.name == name:
+                log.debug(f"Repository {r.name} (url: {r.url}) already exists")
+                return
         repo = KasRepo(name, url=url, commit=commit, branch=branch, layers=[])
         self._repos.append(repo)
 
     def add_local_repo(self, name: str, layers: list[str] | None = None):
+        for r in self._repos:
+            if r.name == name:
+                log.debug(f"Local repository {r.name} already exists")
+                return
         repo = KasRepo(name, layers=layers)
         self._repos.append(repo)
 
@@ -72,6 +83,10 @@ class KasFile:
             self._local_conf.append(KasFragment(section=frag.section,
                                                 weight=frag.weight,
                                                 text=frag.text))
+        for frag in machine.wks_file:
+            self._wks.append(KasFragment(section=frag.section,
+                                         weight=frag.weight,
+                                         text=frag.text))
 
     def add_feature(self, feature: Feature) -> None:
         self._features.append(feature)
@@ -81,6 +96,22 @@ class KasFile:
             self._local_conf.append(KasFragment(section=frag.section,
                                                 weight=frag.weight,
                                                 text=frag.text))
+        machine_overrides = feature.machine_overrides
+        machine_includes = machine_overrides.get('includes', {})
+        for inc in machine_includes.get(self._machine.name, []):
+            self.add_include(inc.repo, inc.file)
+        machine_local_conf = machine_overrides.get('local_conf', {})
+        for frag in machine_local_conf.get(self._machine.name, []):
+            self._local_conf.append(KasFragment(section=frag.section,
+                                                weight=frag.weight,
+                                                text=frag.text))
+        machine_wks_file = machine_overrides.get('wks_file', {})
+        if machine_wks_file.get(self._machine.name) is not None:
+            self._wks = []
+            for frag in machine_wks_file.get(self._machine.name):
+                self._wks.append(KasFragment(section=frag.section,
+                                             weight=frag.weight,
+                                             text=frag.text))
 
     def __str__(self) -> str:
         res = []
@@ -93,12 +124,16 @@ class KasFile:
                     res.append(f"    - repo: {i.repo}")
                     res.append(f"      file: {i.file}")
             res.append("")
-        if len(self._local_conf) > 0:
+        if len(self._local_conf) > 0 or len(self._wks) > 0:
             res.append("local_conf_header:")
             for frag in self._local_conf:
                 res.append(f"  {frag.weight}_{frag.section}: |")
-                for t in frag.text:
-                    res.append(f"    {t}")
+                for line in frag.text:
+                    res.append(f"    {line}")
+            for frag in self._wks:
+                res.append(f"  {frag.weight}_{frag.section}: |")
+                for line in frag.text:
+                    res.append(f"    {line}")
             res.append("")
         if self._distro is not None:
             res.append(f"distro: {self._distro}")
