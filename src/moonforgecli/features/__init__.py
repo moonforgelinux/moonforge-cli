@@ -35,8 +35,10 @@ class Feature:
 
 def available_features() -> list[Features]:
     from .docker import DOCKER_FEATURE
+    from .rauc import RAUC_FEATURE
     return [
         DOCKER_FEATURE,
+        RAUC_FEATURE,
     ]
 
 
