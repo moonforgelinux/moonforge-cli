@@ -4,6 +4,11 @@
 from . import Machine, MachineFragment, MachineInclude
 
 
+QEMU_DISTRO_CONF = [
+    'OVERLAYFS_ETC_DEVICE = "/dev/sda4"',
+    'IMAGE_DATA_MIN_SIZE = "4096M"',
+]
+
 QEMU_MACHINE = Machine(name="qemux86-64",
                        description="QEMU x86_64 builds",
                        includes=[
@@ -13,5 +18,11 @@ QEMU_MACHINE = Machine(name="qemux86-64",
                          MachineFragment(section="meta-moonforge-qemu",
                                          weight=20,
                                          text=['WKS_FILE = "moonforge-image-base-qemux86-64.wks.in"']),
+                       ],
+                       local_conf=[
+                         MachineFragment(section="meta-moonforge-distro",
+                                         weight=20,
+                                         text=QEMU_DISTRO_CONF),
+
                        ],
                        default=True)
