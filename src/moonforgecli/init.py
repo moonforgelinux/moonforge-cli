@@ -41,7 +41,7 @@ derivative distribution.
 LAYER_CONF_FORMAT = """# {project_name} layer configuration
 BBPATH .= ":${{LAYERDIR}}"
 BBFILES += "${{LAYERDIR}}/recipes-*/*/*.bb ${{LAYERDIR}}/recipes-*/*/*.bbappend"
-BBFILE_COLLECTION += "{layer_name}-distro"
+BBFILE_COLLECTIONS += "{layer_name}-distro"
 BBFILE_PATTERN_{layer_name}-distro = "^${{LAYERDIR}}/"
 BBFILE_PRIORITY_{layer_name}-distro = "20"
 
@@ -50,6 +50,8 @@ LAYERSERIES_COMPAT_{layer_name}-distro = "scarthgap"
 """
 
 PROJECT_CONF_FORMAT = """# {project_name} distro configuration
+require conf/distro/moonforge.conf
+
 DISTRO = "{project_name}"
 DISTRO_NAME = "Full project name"
 DISTRO_VERSION = "1.0"
