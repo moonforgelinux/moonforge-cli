@@ -20,12 +20,12 @@ def add_args(parser) -> None:
 
 def run(options) -> 0:
     if options.list:
-        res = [str(AnsiEscape(text="Available features:", mods='BOLD_DEFAULT'))]
+        res = [str(AnsiEscape(text="Available features:", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD))]
         max_name_len = 0
         for f in available_features():
             max_name_len = len(f.name) if len(f.name) > max_name_len else max_name_len
         for f in available_features():
-            name = str(AnsiEscape(text=f.name, color='GREEN'))
+            name = str(AnsiEscape(text=f.name, fg_color=AnsiEscape.GREEN_FG))
             pad = " ".ljust(max_name_len - len(f.name) + 1)
             res.append(f"- {name}:{pad}{f.description}")
         print("\n".join(res))
@@ -39,14 +39,14 @@ def run(options) -> 0:
     
     for feature in features:
         res = []
-        res.append(str(AnsiEscape(text="Feature: ", color="BLUE")) + str(AnsiEscape(text=feature.name, mods="BOLD_DEFAULT")))
+        res.append(str(AnsiEscape(text="Feature: ", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD)) + str(AnsiEscape(text=feature.name, mods=AnsiEscape.BOLD)))
         res.append("")
         res.append(f"  {feature.description}")
         res.append("")
         if len(feature.includes) > 0:
-            res.append(str(AnsiEscape(text="Includes:", color="BLUE")))
+            res.append(str(AnsiEscape(text="Includes:", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD)))
             for include in feature.includes:
-                res.append(f"  - {AnsiEscape(text=include.file, color="GREEN")} from {AnsiEscape(text=include.repo, color="GREEN")}")
+                res.append(f"  - {AnsiEscape(text=include.file, fg_color=AnsiEscape.GREEN_FG)} from {AnsiEscape(text=include.repo, fg_color=AnsiEscape.GREEN_FG)}")
             res.append("")
         print("\n".join(res))
 

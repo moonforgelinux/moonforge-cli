@@ -8,13 +8,25 @@ import time
 import threading
 
 
+class TermColor:
+    NONE = 0
+    EXT = 1
+    TRUE = 2
+
+
 def setup_output():
     try:
-        if platform.system().lower() == 'windows':
-            return os.isatty(sys.stdout.fileno())
-        return os.isatty(sys.stdout.fileno()) and os.environ.get('TERM') != 'dumb'
+        if platform.system().lower() == 'windows' and os.isatty(sys.stdout.fileno()):
+            return TermColor.TRUE
+        if not os.isatty(sys.stdout.fileno()):
+            return TermColor.NONE
+        if os.environ.get('TERM', '') == 'dumb':
+            return TermColor.NONE
+        if os.environ.get('COLORTERM', '') == 'truecolor':
+            return TermColor.TRUE
+        return TermColor.EXT
     except Exception:
-        return False
+        return TermColor.NONE
 
 
 def setup_debug():
@@ -23,30 +35,13 @@ def setup_debug():
     return False
 
 
-log_colorize_output = setup_output()
-log_debug = setup_debug()
-log_quiet = False
-log_fatal_warnings = False
-log_warnings_counter = 0
-log_epoch = 0
-log_lock = threading.Lock()
-
-colors = {
-    'NONE': "[0m",
-    'RED': "[1;31m",
-    'GREEN': "[1;32m",
-    'YELLOW': "[1;33m",
-    'BLUE': "[1;34m",
-    'LIGHT_GREY': "[1;37m",
-    'DARK_GREY': "[1;90m",
-}
-
-modifiers = {
-    'NONE': "[0m",
-    'DEFAULT': "[4;39m",
-    'BOLD_DEFAULT': "[1;39m",
-    'DIM_DEFAULT': "[2;39m",
-}
+log_colorize_output: TermColor = setup_output()
+log_debug: bool = setup_debug()
+log_quiet: bool = False
+log_fatal_warnings: bool = False
+log_warnings_counter: int = 0
+log_epoch: int = 0
+log_lock: threading.Lock = threading.Lock()
 
 
 logged_once = set()
@@ -56,20 +51,96 @@ class AnsiEscape(object):
     '''
     A string-like object that contains an ANSI escaped string.
     '''
-    char = '\033'
+    CHAR = '\033'
+
+    # Modifiers
+    NONE = 0
+    BOLD = 1
+    DIM = 2
+    ITALIC = 3
+    UNDERLINE = 4
+    BLINKING = 5
+    INVERSE = 7
+    HIDDEN = 8
+    STRIKETHROUGH = 9
+
+    # Foreground colors
+    BLACK_FG = 30
+    RED_FG = 31
+    GREEN_FG = 32
+    YELLOW_FG = 33
+    BLUE_FG = 34
+    MAGENTA_FG = 35
+    CYAN_FG = 36
+    WHITE_FG = 37
+    DEFAULT_FG = 39
+
+    # Background colors
+    BLACK_BG = 40
+    RED_BG = 41
+    GREEN_BG = 42
+    YELLOW_BG = 43
+    BLUE_BG = 44
+    MAGENTA_BG = 45
+    CYAN_BG = 46
+    WHITE_BG = 47
+    DEFAULT_BG = 49
+
 
     def __init__(self, *args, **kwargs):
-        self.text = kwargs.get('text', '')
-        self.color = kwargs.get('color', 'NONE')
-        self.mods = kwargs.get('mods', 'DEFAULT')
+        self._text = kwargs.get('text', '')
+        self._mods = kwargs.get('mods', AnsiEscape.NONE)
+        self._fg = kwargs.get('fg_color', AnsiEscape.DEFAULT_FG)
+        self._bg = kwargs.get('bg_color', AnsiEscape.DEFAULT_BG)
+
+    @property
+    def text(self):
+        return self._text
+
+    @property
+    def fg_color(self):
+        return self._fg
+
+    @property
+    def bg_color(self):
+        return self._bg
+
+    @property
+    def mods(self):
+        return self._mods
+
+    @property
+    def pre(self) -> str:
+        return (
+            f"{AnsiEscape.CHAR}["
+            f"{self._mods};"
+            f"{self._fg};"
+            f"{self._bg}"
+            "m"
+        )
+
+    @property
+    def post(self) -> str:
+        return (
+            f"{AnsiEscape.CHAR}["
+            f"{AnsiEscape.NONE};"
+            f"{AnsiEscape.DEFAULT_FG};"
+            f"{AnsiEscape.DEFAULT_BG};"
+            'm'
+        )
+
+    def truecolor(self, r: int, g: int, b: int):
+        return (
+            f"{AnsiEscape.CHAR}[38;2;"
+            f"{r};{g};{b}"
+            "m"
+        )
 
     def __str__(self):
         global log_colorize_output
-        if not log_colorize_output:
+        if log_colorize_output == TermColor.NONE:
             return self.text
-        if self.mods != 'DEFAULT':
-            return f'{AnsiEscape.char}{modifiers[self.mods]}{self.text}{AnsiEscape.char}{modifiers["NONE"]}'
-        return f'{AnsiEscape.char}{colors[self.color]}{self.text}{AnsiEscape.char}{colors["NONE"]}'
+        return f"{self.pre}{self.text}{self.post}"
 
 
 def color(text, color_id):
@@ -77,27 +148,27 @@ def color(text, color_id):
 
 
 def red(text):
-    return AnsiEscape(text=text, color='RED')
+    return AnsiEscape(text=text, fg_color=AnsiEscape.RED_FG)
 
 
 def green(text):
-    return AnsiEscape(text=text, color='GREEN')
+    return AnsiEscape(text=text, fg_color=AnsiEscape.GREEN_FG)
 
 
 def yellow(text):
-    return AnsiEscape(text=text, color='YELLOW')
+    return AnsiEscape(text=text, fg_color=AnsiEscape.YELLOW_FG)
 
 
 def blue(text):
-    return AnsiEscape(text=text, color='BLUE')
+    return AnsiEscape(text=text, fg_color=AnsiEscape.BLUE_FG)
 
 
-def bold(text):
-    return AnsiEscape(text=text, mods='BOLD_DEFAULT')
+def bold(text, color=AnsiEscape.DEFAULT_FG):
+    return AnsiEscape(text=text, fg_color=color, mods=AnsiEscape.BOLD)
 
 
-def dim(text):
-    return AnsiEscape(text=text, mods='DIM_DEFAULT')
+def dim(text, color=AnsiEscape.DEFAULT_FG):
+    return AnsiEscape(text=text, fg_color=color, mods=AnsiEscape.DIM)
 
 
 class Location(object):
