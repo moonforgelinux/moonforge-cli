@@ -5,6 +5,7 @@ import argparse
 import os
 import sys
 
+from . import log
 from .log import AnsiEscape
 from .features import available_features, get_feature
 
