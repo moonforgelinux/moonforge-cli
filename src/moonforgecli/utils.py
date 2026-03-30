@@ -32,22 +32,12 @@ def find_program(bin_name: str, path: str | None = None, error_if_not_found: boo
     else:
         search_paths = path.split(os.pathsep)
 
-    bin_extensions = [""]
-    if sys.platform == "win32":
-        pathext = os.environ["PATHEXT"].lower().split(os.pathsep)
-        (basename, extension) = os.path.splitext(bin_name)
-        if extension.lower() not in pathext:
-            bin_extensions = pathext
-        search_paths.insert(0, "")
-
-    for ext in bin_extensions:
-        executable = bin_name + ext
-        for p in search_paths:
-            full_path = os.path.join(p, executable)
-            if os.path.isfile(full_path):
-                if path is None:
-                    FOUND_PROGRAMS[bin_name] = full_path
-                return full_path
+    for p in search_paths:
+        full_path = os.path.join(p, bin_name)
+        if os.path.isfile(full_path):
+            if path is None:
+                FOUND_PROGRAMS[bin_name] = full_path
+            return full_path
 
     if error_if_not_found:
         log.error(f"Unable to find {bin_name}")

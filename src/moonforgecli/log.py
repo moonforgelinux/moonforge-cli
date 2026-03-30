@@ -16,8 +16,6 @@ class TermColor:
 
 def setup_output():
     try:
-        if platform.system().lower() == 'windows' and os.isatty(sys.stdout.fileno()):
-            return TermColor.TRUE
         if not os.isatty(sys.stdout.fileno()):
             return TermColor.NONE
         if os.environ.get('TERM', '') == 'dumb':
