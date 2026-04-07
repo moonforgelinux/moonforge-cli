@@ -5,8 +5,7 @@ import argparse
 import os
 import sys
 
-from . import log
-from .term import AnsiEscape
+from . import log, term
 from .machines import available_machines, get_machine
 
 
@@ -22,7 +21,7 @@ def add_args(parser) -> None:
 
 def run(options) -> int:
     if options.list:
-        res = [str(AnsiEscape(text="Available machines:", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD))]
+        res = [term.heading(text="Available machines:")]
         max_name_len = 0
         for m in available_machines():
             max_name_len = len(m.name) if len(m.name) > max_name_len else max_name_len
@@ -34,7 +33,10 @@ def run(options) -> int:
         return 0
 
     if len(options.machines) == 0:
-        print(f"{AnsiEscape(text="usage:", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD)} moonforge machine MACHINE...")
+        heading = term.heading("usage:")
+        command = term.command("moonforge")
+        option = term.option("machine")
+        print(f"{heading} {command} {option} MACHINE...")
         return 1
 
     machines = []
@@ -46,14 +48,14 @@ def run(options) -> int:
     
     for machine in machines:
         res = []
-        res.append(str(AnsiEscape(text="Machine: ", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD)) + str(AnsiEscape(text=machine.name, mods=AnsiEscape.BOLD)))
+        res.append(f"{term.heading('Machine:')} {term.bold(machine.name)}")
         res.append("")
         res.append(f"  {machine.description}")
         res.append("")
         if len(machine.includes) > 0:
-            res.append(str(AnsiEscape(text="Includes:", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD)))
+            res.append(term.heading("Includes:"))
             for include in machine.includes:
-                res.append(f"  - {AnsiEscape(text=include.file, fg_color=AnsiEscape.GREEN_FG)} from {AnsiEscape(text=include.repo, fg_color=AnsiEscape.GREEN_FG)}")
+                res.append(f"  - {term.green(include.file)} from {term.green(include.repo)}")
             res.append("")
         print("\n".join(res))
 

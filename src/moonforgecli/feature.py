@@ -5,8 +5,7 @@ import argparse
 import os
 import sys
 
-from . import log
-from .term import AnsiEscape
+from . import log, term
 from .features import available_features, get_feature
 
 
@@ -22,19 +21,22 @@ def add_args(parser) -> None:
 
 def run(options) -> int:
     if options.list:
-        res = [str(AnsiEscape(text="Available features:", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD))]
+        res = [term.heading(text="Available features:")]
         max_name_len = 0
         for f in available_features():
             max_name_len = len(f.name) if len(f.name) > max_name_len else max_name_len
         for f in available_features():
-            name = str(AnsiEscape(text=f.name, fg_color=AnsiEscape.GREEN_FG))
+            name = term.option(f.name)
             pad = " ".ljust(max_name_len - len(f.name) + 1)
             res.append(f"- {name}:{pad}{f.description}")
         print("\n".join(res))
         return 0
 
     if len(options.features) == 0:
-        print(f"{AnsiEscape(text="usage:", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD)} moonforge feature FEATURE...")
+        heading = term.heading("usage:")
+        command = term.command("moonforge")
+        option = term.option("feature")
+        print(f"{heading} {command} {option} FEATURE...")
         return 1
 
     features = []
@@ -46,14 +48,14 @@ def run(options) -> int:
     
     for feature in features:
         res = []
-        res.append(str(AnsiEscape(text="Feature: ", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD)) + str(AnsiEscape(text=feature.name, mods=AnsiEscape.BOLD)))
+        res.append(f"{term.heading('Feature:')} {term.bold(feature.name)}")
         res.append("")
         res.append(f"  {feature.description}")
         res.append("")
         if len(feature.includes) > 0:
-            res.append(str(AnsiEscape(text="Includes:", fg_color=AnsiEscape.BLUE_FG, mods=AnsiEscape.BOLD)))
+            res.append(term.heading("Includes:"))
             for include in feature.includes:
-                res.append(f"  - {AnsiEscape(text=include.file, fg_color=AnsiEscape.GREEN_FG)} from {AnsiEscape(text=include.repo, fg_color=AnsiEscape.GREEN_FG)}")
+                res.append(f"  - {term.green(include.file)} from {term.green(include.repo)}")
             res.append("")
         print("\n".join(res))
 
