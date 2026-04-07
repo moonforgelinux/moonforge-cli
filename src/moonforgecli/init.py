@@ -215,7 +215,7 @@ def add_args(parser):
                         help="the target machine")
     parser.add_argument("--feature", metavar="FEATURE", action="append",
                         dest="features", default=[], help="enabled features")
-    parser.add_argument("--vcs", metavar="VCS", default="none",
+    parser.add_argument("--vcs", metavar="VCS", default="none", choices=["none", "git"],
                         help="initialize the project for the given version control (values: git, none)")
     parser.add_argument("path", metavar="PATH", default=".",
                         help="the path of the project")
@@ -240,7 +240,5 @@ def run(options):
         if f is None:
             log.error(f"Invalid feature {feat}.")
         features.append(f)
-    if options.vcs not in ["none", "git"]:
-        log.error(f"Invalid VCS {options.vcs}. Use one of: none, git")
     project = Project(project_name, path, machine, features, options.vcs)
     return init_project(project)
