@@ -6,7 +6,7 @@ import os
 import sys
 
 from . import log
-from .log import AnsiEscape
+from .term import AnsiEscape
 from .machines import available_machines, get_machine
 
 
