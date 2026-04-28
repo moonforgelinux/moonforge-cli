@@ -57,6 +57,11 @@ def run(options) -> int:
             for include in feature.includes:
                 res.append(f"  - {term.green(include.file)} from {term.green(include.repo)}")
             res.append("")
+        if len(feature.conflicts) > 0:
+            res.append(term.heading("Conflicts:"))
+            for conflict in feature.conflicts:
+                res.append(f"  - {term.red(conflict)}")
+            res.append("")
         print("\n".join(res))
 
     return 0
