@@ -42,6 +42,7 @@ class Feature:
     includes: list[FeatureInclude] = field(default_factory=list)
     local_conf: list[FeatureFragment] = field(default_factory=list)
     machine_overrides: dict[str, FeatureOverride] | None = field(default_factory=dict)
+    conflicts: list[str] | None = field(default_factory=list)
 
 
 def available_features() -> list[Features]:
