@@ -185,6 +185,9 @@ def init_vcs(project: Project) -> None:
             return
         args += [git_bin, "init", str(project.path)]
 
+        with open(project.path / ".gitignore", "w", encoding="utf-8") as f:
+            f.write("/build")
+
     try:
         log.info(f"Initializing {project.vcs} repository")
         proc = subprocess.Popen(args,
