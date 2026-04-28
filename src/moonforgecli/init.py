@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 
 from . import log, kas, utils
-from .features import get_feature
+from .features import check_conflicts, get_feature
 from .machines import get_machine
 
 
@@ -242,6 +242,10 @@ def run(options):
         f = get_feature(feat)
         if f is None:
             log.error(f"Invalid feature {feat}.")
+        conflicts = check_conflicts(feat, options.features)
+        if conflicts is not None:
+            res = ", ".join(conflicts)
+            log.error(f"Feature {feat} conflicts with the following features: {res}")
         features.append(f)
     project = Project(project_name, path, machine, features, options.vcs)
     return init_project(project)

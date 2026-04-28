@@ -61,3 +61,25 @@ def get_feature(name: str) -> Feature | None:
         if feature.name == name:
             return feature
     return None
+
+
+def check_conflicts(name: str, features: list[str]) -> list[str] | None:
+    feature = get_feature(name)
+    feature_conflicts = getattr(feature, "conflicts", [])
+    if len(feature_conflicts) == 0:
+        return None
+
+    res = []
+    for feat in features:
+        check = get_feature(feat)
+        if check.name in feature_conflicts:
+            res.append(check.name)
+        else:
+            check_conflicts = getattr(check, "conflicts", [])
+            if feature.name in check_conflicts:
+                res.append(check.name)
+
+    if len(res) == 0:
+        return None
+
+    return res
