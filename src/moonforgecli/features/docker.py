@@ -5,7 +5,8 @@ from . import Feature, FeatureFragment, FeatureInclude
 
 
 DOCKER_FEATURE = Feature(name="docker",
-                         description="Docker support",
+                         description="Container support using Docker",
                          includes=[
                            FeatureInclude("meta-moonforge", "kas/include/layer/meta-moonforge-docker.yml")
-                         ])
+                         ],
+                         conflicts=["podman"])
