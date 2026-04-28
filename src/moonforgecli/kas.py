@@ -187,7 +187,7 @@ class KasFile:
             for section in sections.keys():
                 output.append(f"  {section}: |")
                 for frag in sections[section]:
-                    output.append(f"    {frag.key} = {frag.value}")
+                    output.append(f'    {frag.key} = "{frag.value}"')
 
         return output
 
