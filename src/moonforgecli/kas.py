@@ -33,7 +33,7 @@ class KasFragment:
 @dataclass
 class KasRepo:
     """Class for kas repo directives."""
-    name: str
+    name: str | None
     url: str | None = None
     commit: str | None = None
     branch: str | None = None
@@ -51,7 +51,7 @@ class KasFile:
         self._local_conf: list[KasFragment] = []
         self._wks: list[KasFragment] = []
 
-    def add_include(self, repo: str, file: str) -> None:
+    def add_include(self, repo: str | None, file: str) -> None:
         self._header.includes.append(KasInclude(repo, file))
 
     def add_repo(self, name: str, url: str, commit: str | None = None, branch: str = None) -> None:
@@ -85,6 +85,8 @@ class KasFile:
         output.append(f"  version: {self._header.version}")
 
         includes = []
+        includes.extend(self._header.includes)
+
         if self._machine is not None:
             for include in getattr(self._machine, "includes", []):
                 includes.append(include)
@@ -102,8 +104,11 @@ class KasFile:
         if len(includes) > 0:
             output.append("  includes:")
             for include in includes:
-                output.append(f"    - repo: {include.repo}")
-                output.append(f"      file: {include.file}")
+                if include.repo is not None:
+                    output.append(f"    - repo: {include.repo}")
+                    output.append(f"      file: {include.file}")
+                else:
+                    output.append(f"    - {include.file}")
             output.append("")
 
         return output
