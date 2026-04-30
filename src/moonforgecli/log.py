@@ -7,14 +7,7 @@ import sys
 import time
 import threading
 
-
-def setup_output():
-    try:
-        if platform.system().lower() == 'windows':
-            return os.isatty(sys.stdout.fileno())
-        return os.isatty(sys.stdout.fileno()) and os.environ.get('TERM') != 'dumb'
-    except Exception:
-        return False
+from . import term
 
 
 def setup_debug():
@@ -23,81 +16,15 @@ def setup_debug():
     return False
 
 
-log_colorize_output = setup_output()
-log_debug = setup_debug()
-log_quiet = False
-log_fatal_warnings = False
-log_warnings_counter = 0
-log_epoch = 0
-log_lock = threading.Lock()
-
-colors = {
-    'NONE': "[0m",
-    'RED': "[1;31m",
-    'GREEN': "[1;32m",
-    'YELLOW': "[1;33m",
-    'BLUE': "[1;34m",
-    'LIGHT_GREY': "[1;37m",
-    'DARK_GREY': "[1;90m",
-}
-
-modifiers = {
-    'NONE': "[0m",
-    'DEFAULT': "[4;39m",
-    'BOLD_DEFAULT': "[1;39m",
-    'DIM_DEFAULT': "[2;39m",
-}
+log_debug: bool = setup_debug()
+log_quiet: bool = False
+log_fatal_warnings: bool = False
+log_warnings_counter: int = 0
+log_epoch: int = 0
+log_lock: threading.Lock = threading.Lock()
 
 
 logged_once = set()
-
-
-class AnsiEscape(object):
-    '''
-    A string-like object that contains an ANSI escaped string.
-    '''
-    char = '\033'
-
-    def __init__(self, *args, **kwargs):
-        self.text = kwargs.get('text', '')
-        self.color = kwargs.get('color', 'NONE')
-        self.mods = kwargs.get('mods', 'DEFAULT')
-
-    def __str__(self):
-        global log_colorize_output
-        if not log_colorize_output:
-            return self.text
-        if self.mods != 'DEFAULT':
-            return f'{AnsiEscape.char}{modifiers[self.mods]}{self.text}{AnsiEscape.char}{modifiers["NONE"]}'
-        return f'{AnsiEscape.char}{colors[self.color]}{self.text}{AnsiEscape.char}{colors["NONE"]}'
-
-
-def color(text, color_id):
-    return f'\u001b[38;5;{color_id}m{text}\u001b[0m'
-
-
-def red(text):
-    return AnsiEscape(text=text, color='RED')
-
-
-def green(text):
-    return AnsiEscape(text=text, color='GREEN')
-
-
-def yellow(text):
-    return AnsiEscape(text=text, color='YELLOW')
-
-
-def blue(text):
-    return AnsiEscape(text=text, color='BLUE')
-
-
-def bold(text):
-    return AnsiEscape(text=text, mods='BOLD_DEFAULT')
-
-
-def dim(text):
-    return AnsiEscape(text=text, mods='DIM_DEFAULT')
 
 
 class Location(object):
@@ -161,13 +88,13 @@ def log(text, prefix=None, location=None, out=None):
 
 def error(text, location=None):
     '''Prints an error message'''
-    log(text, prefix=red('ERROR'), location=location, out=sys.stderr)
+    log(text, prefix=term.red('ERROR'), location=location, out=sys.stderr)
     sys.exit(1)
 
 
 def warning(text, location=None):
     '''Prints a warning message'''
-    log(text, prefix=yellow('WARNING'), location=location, out=sys.stderr)
+    log(text, prefix=term.yellow('WARNING'), location=location, out=sys.stderr)
 
     global log_warnings_counter
     log_warnings_counter += 1
@@ -179,10 +106,10 @@ def warning(text, location=None):
 def info(text, location=None):
     '''Prints an information message'''
     if not log_quiet:
-        log(text, prefix=green('INFO'), location=location)
+        log(text, prefix=term.green('INFO'), location=location)
 
 
 def debug(text, location=None):
     '''Prints a debug message'''
     if log_debug:
-        log(text, prefix=dim('DEBUG'), location=location)
+        log(text, prefix=term.dim('DEBUG'), location=location)

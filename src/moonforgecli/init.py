@@ -3,10 +3,11 @@
 
 import argparse
 import os
+import subprocess
 
 from pathlib import Path
 
-from . import log, kas
+from . import log, kas, utils
 from .features import get_feature
 from .machines import get_machine
 
@@ -77,11 +78,12 @@ def sanitize_project_name(name: str) -> str:
 
 
 class Project:
-    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature]):
+    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], vcs: str):
         self._name = name
         self._path = path
         self._machine = machine
         self._features = features
+        self._vcs = vcs
 
     @property
     def name(self) -> str:
@@ -102,6 +104,10 @@ class Project:
     @property
     def local_repo_name(self) -> str:
         return sanitize_layer_name(self._name)
+
+    @property
+    def vcs(self) -> str:
+        return self._vcs
 
     def to_kas(self) -> str:
         kf = kas.KasFile()
@@ -164,26 +170,58 @@ def add_kas_dir(project: Project) -> None:
     log.info(f"Creating kas configuration for {project.name}")
     kas_path = project.path / "kas"
     os.makedirs(kas_path, exist_ok=True)
-    with open(kas_path / f"{project_name}-image-base.yml", "w", encoding="utf-8") as f:
+    with open(kas_path / f"{project_name}-image-base-{project.machine.name}.yml", "w", encoding="utf-8") as f:
         f.write(project.to_kas())
 
 
-def init_project(path: str, project_name: str, machine: Machine, features: list[Feature]) -> int:
-    project_path = Path(path)
-    if not project_path.exists():
-        os.makedirs(project_path)
-    project = Project(project_name, project_path, machine, features)
+def init_vcs(project: Project) -> None:
+    args = []
+    if project.vcs == "none":
+        return
+    elif project.vcs == "git":
+        git_bin = utils.find_program("git")
+        if not git_bin:
+            log.warning("Unable to find git in the path")
+            return
+        args += [git_bin, "init", str(project.path)]
+
+        with open(project.path / ".gitignore", "w", encoding="utf-8") as f:
+            f.write("/build")
+
+    try:
+        log.info(f"Initializing {project.vcs} repository")
+        proc = subprocess.Popen(args,
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        output, err = proc.communicate()
+        if proc.returncode:
+            log.warning(f"Unable to initialize VCS: {err}")
+            return
+    except Exception as e:
+        log.warning(f"Unable to initialize VCS: {e}")
+
+
+def init_project(project: Project) -> int:
+    if not project.path.exists():
+        os.makedirs(project.path)
     add_top_level_files(project)
     add_conf_dir(project)
     add_kas_dir(project)
+    init_vcs(project)
     return 0
 
 
 def add_args(parser):
     parser.add_argument("--name", metavar="NAME", help="the project name")
-    parser.add_argument("--machine", metavar="MACHINE", default="qemu", help="the target machine")
-    parser.add_argument("--feature", metavar="FEATURE", action="append", dest="features", default=[], help="enabled features")
-    parser.add_argument("path", metavar="PATH", default=".", help="the path of the project")
+    parser.add_argument("--machine", metavar="MACHINE", default="default",
+                        help="the target machine")
+    parser.add_argument("--feature", metavar="FEATURE", action="append",
+                        dest="features", default=[], help="enabled features")
+    parser.add_argument("--vcs", metavar="VCS", default="git", choices=["none", "git"],
+                        help="initialize the project for the given version control (values: git, none)")
+    parser.add_argument("path", metavar="PATH", default=".",
+                        help="the path of the project")
 
 
 def run(options):
@@ -205,4 +243,5 @@ def run(options):
         if f is None:
             log.error(f"Invalid feature {feat}.")
         features.append(f)
-    return init_project(project_path, project_name, machine, features)
+    project = Project(project_name, path, machine, features, options.vcs)
+    return init_project(project)
