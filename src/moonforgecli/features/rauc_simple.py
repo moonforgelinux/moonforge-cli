@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Igalia S.L.
 # SPDX-License-Identifier: MIT
 
-from . import Feature, FeatureFragment, FeatureInclude
+from . import Feature, FeatureFragment, FeatureInclude, FeatureVariable
 
 
 RAUC_FEATURE = Feature(name="rauc-simple",
@@ -46,4 +46,9 @@ RAUC_FEATURE = Feature(name="rauc-simple",
                              FeatureInclude("meta-moonforge", "kas/include/layer/meta-moonforge-rauc-raspberrypi.yml"),
                            ],
                          },
-                       })
+                       },
+                       variables=[
+                         FeatureVariable(name="RAUC_FORCE_REBOOT_ON_UPDATE",
+                                         description="Reboot on update",
+                                         default="1"),
+                       ])
