@@ -64,6 +64,23 @@ IMAGE_BASE_FORMAT = """# {project_name} image base
 IMAGE_FEATURES += "ssh-server-openssh"
 """
 
+META_MOONFORGE_YML = """header:
+  version: 16
+
+repos:
+  meta-moonforge:
+    url: {url}
+    commit: {commit}
+    branch: {branch}
+"""
+
+META_MOONFORGE_URL = "https://github.com/moonforgelinux/meta-moonforge.git"
+
+META_MOONFORGE_COMMIT = "42b1aeefb1327785c48925e62719fa13d55c8e13"
+
+META_MOONFORGE_BRANCH = "main"
+
+
 def sanitize_layer_name(name: str) -> str:
     tokens = [x.lower() for x in name.split()]
     res = "-".join(tokens)
@@ -111,9 +128,8 @@ class Project:
 
     def to_kas(self) -> str:
         kf = kas.KasFile()
-        kf.add_include("meta-moonforge", "kas/include/layer/meta-moonforge-distro.yml")
-        kf.add_repo(name="meta-moonforge", url="https://github.com/moonforgelinux/meta-moonforge.git",
-                    commit="ce8ff3de25dda42215b7c8dfd201fd39c3960b1f", branch="main")
+        kf.add_include(repo=None, file="kas/include/repo/meta-moonforge.yml")
+        kf.add_include(repo="meta-moonforge", file="kas/include/layer/meta-moonforge-distro.yml")
         kf.add_local_repo(name=f"{self.local_repo_name}", layers=[f"{self.local_repo_name}-distro"])
         kf.set_distro(self._name)
         kf.set_machine(self._machine)
@@ -167,9 +183,18 @@ def add_kas_dir(project: Project) -> None:
     project_name = sanitize_project_name(project.name)
     layer_name = sanitize_layer_name(project.name)
 
-    log.info(f"Creating kas configuration for {project.name}")
     kas_path = project.path / "kas"
     os.makedirs(kas_path, exist_ok=True)
+
+    log.info(f"Creating kas include directories for {project.name}")
+    repo_include_path = kas_path / "include" / "repo"
+    os.makedirs(repo_include_path, exist_ok=True)
+    with open(repo_include_path / "meta-moonforge.yml", "w", encoding="utf-8") as f:
+        f.write(META_MOONFORGE_YML.format(url=META_MOONFORGE_URL,
+                                          commit=META_MOONFORGE_COMMIT,
+                                          branch=META_MOONFORGE_BRANCH))
+
+    log.info(f"Creating kas configuration for {project.name}")
     with open(kas_path / f"{project_name}-image-base-{project.machine.name}.yml", "w", encoding="utf-8") as f:
         f.write(project.to_kas())
 
