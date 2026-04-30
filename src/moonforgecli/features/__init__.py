@@ -20,6 +20,13 @@ class FeatureInclude:
 
 
 @dataclass
+class FeatureVariable:
+    name: str
+    description: str
+    default: str
+
+
+@dataclass
 class FeatureRepo:
     name: str
     url: str | None = None
@@ -43,6 +50,7 @@ class Feature:
     local_conf: list[FeatureFragment] = field(default_factory=list)
     machine_overrides: dict[str, FeatureOverride] | None = field(default_factory=dict)
     conflicts: list[str] | None = field(default_factory=list)
+    variables: list[FeatureVariable] | None = field(default_factory=list)
 
 
 def available_features() -> list[Features]:
