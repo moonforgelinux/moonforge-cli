@@ -52,6 +52,13 @@ def run(options) -> int:
         res.append("")
         res.append(f"  {feature.description}")
         res.append("")
+        if feature.variables is not None:
+            res.append(term.heading("Variables:"))
+            for var in feature.variables:
+                res.append(f"  - {term.green(var.name)}:")
+                res.append(f"    {var.description}")
+                res.append(f"    Default value: {var.default}")
+            res.append("")
         if len(feature.includes) > 0:
             res.append(term.heading("Includes:"))
             for include in feature.includes:

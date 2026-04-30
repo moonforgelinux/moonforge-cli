@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Igalia S.L.
 # SPDX-License-Identifier: MIT
 
-from . import Feature, FeatureFragment, FeatureInclude
+from . import Feature, FeatureFragment, FeatureInclude, FeatureVariable
 
 
 GRAPHICS_WPE_FEATURE = Feature(name="graphics-wpe",
@@ -16,4 +16,9 @@ GRAPHICS_WPE_FEATURE = Feature(name="graphics-wpe",
                                                  key="WAYLAND_COG_LAUNCH_URL",
                                                  value="http://10.0.2.2:8080"),
                                ],
-                               conflicts=['graphics-weston'])
+                               conflicts=['graphics-weston'],
+                               variables=[
+                                 FeatureVariable(name="WAYLAND_COG_LAUNCH_URL",
+                                                 description="The URL to display at boot",
+                                                 default="http://10.0.2.2:8080"),
+                               ])
