@@ -7,7 +7,7 @@ import sys
 import traceback
 
 from . import log
-from . import feature, init, machine
+from . import build, feature, init, machine
 
 
 VERSION = "2026.1"
@@ -42,6 +42,10 @@ class MoonforgeApp:
                          add_args_func=machine.add_args,
                          run_func=machine.run,
                          help_msg=machine.HELP_MSG)
+        self.add_command('build',
+                         add_args_func=build.add_args,
+                         run_func=build.run,
+                         help_msg=build.HELP_MSG)
 
     def run(self, args):
         """
