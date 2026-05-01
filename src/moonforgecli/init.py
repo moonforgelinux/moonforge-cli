@@ -122,6 +122,15 @@ def add_conf_dir(project: Project) -> None:
         f.write(IMAGE_BASE_FORMAT.format(project_name=project_name, layer_name=layer_name))
 
 
+def add_meta_dir(project: Project) -> None:
+    log.info(f"Creating project metadata for {project.name}")
+
+    meta_path = project.path / ".moonforge"
+    os.makedirs(meta_path, exist_ok=True)
+    with open(meta_path / "project.toml", "w", encoding="utf-8") as f:
+        f.write(project.to_toml())
+
+
 def add_kas_dir(project: Project) -> None:
     project_name = utils.sanitize_project_name(project.name)
 
@@ -175,6 +184,7 @@ def init_project(project: Project) -> int:
     add_top_level_files(project)
     add_conf_dir(project)
     add_kas_dir(project)
+    add_meta_dir(project)
     init_vcs(project)
     return 0
 
