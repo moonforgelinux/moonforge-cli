@@ -43,3 +43,18 @@ def find_program(bin_name: str, path: str | None = None, error_if_not_found: boo
         log.error(f"Unable to find {bin_name}")
 
     return None
+
+
+def sanitize_layer_name(name: str) -> str:
+    """Turns a project name into a layer name."""
+    tokens = [x.lower() for x in name.split()]
+    res = "-".join(tokens)
+    if not res.startswith("meta-"):
+        res = "meta-" + res
+    return res
+
+
+def sanitize_project_name(name: str) -> str:
+    """Sanitizes the project name for use inside a project."""
+    tokens = [x.lower() for x in name.split()]
+    return tokens[0]
