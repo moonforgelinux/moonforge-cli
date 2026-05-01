@@ -80,19 +80,6 @@ META_MOONFORGE_COMMIT = "42b1aeefb1327785c48925e62719fa13d55c8e13"
 META_MOONFORGE_BRANCH = "main"
 
 
-def sanitize_layer_name(name: str) -> str:
-    tokens = [x.lower() for x in name.split()]
-    res = "-".join(tokens)
-    if not res.startswith("meta-"):
-        res = "meta-" + res
-    return res
-
-
-def sanitize_project_name(name: str) -> str:
-    tokens = [x.lower() for x in name.split()]
-    return tokens[0]
-
-
 class Project:
     def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], variables: dict[str, str], vcs: str) -> None:
         self._name = name
@@ -120,7 +107,7 @@ class Project:
 
     @property
     def local_repo_name(self) -> str:
-        return sanitize_layer_name(self._name)
+        return utils.sanitize_layer_name(self._name)
 
     @property
     def vcs(self) -> str:
@@ -149,8 +136,8 @@ def add_top_level_files(project: Project) -> None:
 def add_conf_dir(project: Project) -> None:
     log.info(f"Creating layer configuration for {project.name}")
 
-    project_name = sanitize_project_name(project.name)
-    layer_name = sanitize_layer_name(project.name)
+    project_name = utils.sanitize_project_name(project.name)
+    layer_name = utils.sanitize_layer_name(project.name)
 
     log.info(f"Creating layer meta-{project_name}-distro for {project.name}")
     distro_path = project.path / f"meta-{project_name}-distro"
@@ -182,7 +169,7 @@ def add_conf_dir(project: Project) -> None:
 
 
 def add_kas_dir(project: Project) -> None:
-    project_name = sanitize_project_name(project.name)
+    project_name = utils.sanitize_project_name(project.name)
 
     kas_path = project.path / "kas"
     os.makedirs(kas_path, exist_ok=True)
