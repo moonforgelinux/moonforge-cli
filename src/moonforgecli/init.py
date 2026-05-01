@@ -6,9 +6,10 @@ import subprocess
 
 from pathlib import Path
 
-from . import log, kas, term, utils
-from .features import Feature, check_conflicts, get_feature
-from .machines import Machine, get_machine
+from . import log, term, utils
+from .features import check_conflicts, get_feature
+from .machines import get_machine
+from .project import Project
 
 
 HELP_MSG = "Initialize a Moonforge project"
@@ -78,53 +79,6 @@ META_MOONFORGE_URL = "https://github.com/moonforgelinux/meta-moonforge.git"
 META_MOONFORGE_COMMIT = "42b1aeefb1327785c48925e62719fa13d55c8e13"
 
 META_MOONFORGE_BRANCH = "main"
-
-
-class Project:
-    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], variables: dict[str, str], vcs: str) -> None:
-        self._name = name
-        self._path = path
-        self._machine = machine
-        self._features = features
-        self._variables = variables
-        self._vcs = vcs
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def path(self) -> Path:
-        return self._path
-
-    @property
-    def machine(self) -> Machine:
-        return self._machine
-
-    @property
-    def features(self) -> list[Feature]:
-        return self._features
-
-    @property
-    def local_repo_name(self) -> str:
-        return utils.sanitize_layer_name(self._name)
-
-    @property
-    def vcs(self) -> str:
-        return self._vcs
-
-    def to_kas(self) -> str:
-        kf = kas.KasFile()
-        kf.add_include(repo=None, file="kas/include/repo/meta-moonforge.yml")
-        kf.add_include(repo="meta-moonforge", file="kas/include/layer/meta-moonforge-distro.yml")
-        kf.add_local_repo(name=f"{self.local_repo_name}", layers=[f"{self.local_repo_name}-distro"])
-        kf.set_distro(self._name)
-        kf.set_machine(self._machine)
-        for feat in self._features:
-            kf.add_feature(feat)
-        for key in self._variables:
-            kf.add_variable(key, self._variables[key])
-        return str(kf)
 
 
 def add_top_level_files(project: Project) -> None:
