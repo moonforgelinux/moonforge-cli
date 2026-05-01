@@ -55,3 +55,22 @@ class Project:
         for key in self._variables:
             kf.add_variable(key, self._variables[key])
         return str(kf)
+
+    def to_toml(self) -> str:
+        res = [
+            "[project]",
+            f'name = "{self._name}"',
+        ]
+        if self._machine is not None:
+            res.append(f'machine = "{self._machine.name}"')
+        features = []
+        for feat in self._features:
+            features.append(f'"{feat.name}"')
+        if len(features) > 0:
+            res.append(f"features = [ {', '.join(features)} ]")
+        variables = []
+        for key in self._variables:
+            variables.append(f'"{key}={self._variables[key]}"')
+        if len(variables) > 0:
+            res.append(f"variables = [ {', '.join(variables)} ]")
+        return "\n".join(res)
