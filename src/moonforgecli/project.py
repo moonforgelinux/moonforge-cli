@@ -1,17 +1,19 @@
 # SPDX-FileCopyrightText: 2026  Igalia S.L.
 # SPDX-License-Identifier: MIT
 
+import tomllib
+
 from pathlib import Path
 
-from . import kas, utils
+from . import kas, log, utils
 
-from .features import Feature
-from .machines import Machine
+from .features import Feature, get_feature
+from .machines import Machine, get_machine
 
 
 class Project:
     """The metadata for a Moonforge project."""
-    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], variables: dict[str, str], vcs: str):
+    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], variables: dict[str, str], vcs: str | None = None):
         self._name = name
         self._path = path
         self._machine = machine
@@ -36,11 +38,17 @@ class Project:
         return self._features
 
     @property
+    def variables(self) -> dict[str, str]:
+        return self._variables
+
+    @property
     def local_repo_name(self) -> str:
         return utils.sanitize_layer_name(self._name)
 
     @property
     def vcs(self) -> str:
+        if self._vcs is None:
+            return "none"
         return self._vcs
 
     def to_kas(self) -> str:
@@ -55,6 +63,28 @@ class Project:
         for key in self._variables:
             kf.add_variable(key, self._variables[key])
         return str(kf)
+
+    @staticmethod
+    def from_toml(path: Path) -> Project:
+        project_toml_path = path.absolute() / ".moonforge" / "project.toml"
+        if not path.exists():
+            log.error(f"No project found at {path}")
+        with open(project_toml_path, "rb") as f:
+            try:
+                data = tomllib.load(f)
+            except Exception as err:
+                log.error(f"Invalid project at {path}: {err}")
+            name = data["project"]["name"]
+            machine = get_machine(data["project"]["machine"])
+            features = [get_feature(x) for x in data["project"].get("features", [])]
+            variables = {}
+            for variable in data["project"].get("variables", []):
+                try:
+                    key, value = variable.split("=", 1)
+                    variables[key] = value
+                except ValueError:
+                    log.warning(f"Invalid variable {variable} in configuration")
+            return Project(name, path.absolute(), machine, features, variables, "none")
 
     def to_toml(self) -> str:
         res = [
