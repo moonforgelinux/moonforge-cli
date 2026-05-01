@@ -95,11 +95,12 @@ def sanitize_project_name(name: str) -> str:
 
 
 class Project:
-    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], vcs: str):
+    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], variables: dict[str], vcs: str):
         self._name = name
         self._path = path
         self._machine = machine
         self._features = features
+        self._variables = variables
         self._vcs = vcs
 
     @property
@@ -135,6 +136,8 @@ class Project:
         kf.set_machine(self._machine)
         for feat in self._features:
             kf.add_feature(feat)
+        for key in self._variables:
+            kf.add_variable(key, self._variables[key])
         return str(kf)
 
 
@@ -243,6 +246,8 @@ def add_args(parser):
                         help="the target machine")
     parser.add_argument("--feature", metavar="FEATURE", action="append",
                         dest="features", default=[], help="enabled features")
+    parser.add_argument("--variable", metavar="KEY=VALUE", action="append",
+                        dest="variables", default=[], help="layer variables")
     parser.add_argument("--vcs", metavar="VCS", default="git", choices=["none", "git"],
                         help="initialize the project for the given version control (values: git, none)")
     parser.add_argument("path", metavar="PATH", default=".",
@@ -272,5 +277,20 @@ def run(options):
             res = ", ".join(conflicts)
             log.error(f"Feature {feat} conflicts with the following features: {res}")
         features.append(f)
-    project = Project(project_name, path, machine, features, options.vcs)
+    variables = {}
+    for var in options.variables:
+        try:
+            (key, value) = var.split("=", 1)
+        except ValueError as err:
+            log.error(f"Invalid variable '{var}': {err}")
+        found = False
+        for feat in features:
+            for var in feat.variables:
+                if var.name == key:
+                    found = True
+                    break
+        if not found:
+            log.error(f"Variable {key} is not part of any feature")
+        variables[key] = value
+    project = Project(project_name, path, machine, features, variables, options.vcs)
     return init_project(project)

@@ -48,6 +48,7 @@ class KasFile:
         self._distro: str | None = None
         self._machine: Machine | None = None
         self._features: list[Feature] | None = []
+        self._variables: dict[str, str] | None = {}
         self._local_conf: list[KasFragment] = []
         self._wks: list[KasFragment] = []
 
@@ -78,6 +79,9 @@ class KasFile:
 
     def add_feature(self, feature: Feature) -> None:
         self._features.append(feature)
+
+    def add_variable(self, key: str, value: str) -> None:
+        self._variables[key] = value
 
     def _build_header(self) -> list[str]:
         output = []
@@ -192,7 +196,11 @@ class KasFile:
             for section in sections.keys():
                 output.append(f"  {section}: |")
                 for frag in sections[section]:
-                    output.append(f'    {frag.key} = "{frag.value}"')
+                    if frag.key in self._variables:
+                        value = self._variables[frag.key]
+                    else:
+                        value = frag.value
+                    output.append(f'    {frag.key} = "{value}"')
 
         return output
 
