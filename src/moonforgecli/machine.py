@@ -26,7 +26,7 @@ def run(options) -> int:
         for m in available_machines():
             max_name_len = len(m.name) if len(m.name) > max_name_len else max_name_len
         for m in available_machines():
-            name = str(AnsiEscape(text=m.name, fg_color=AnsiEscape.GREEN_FG))
+            name = term.option(m.name)
             pad = " ".ljust(max_name_len - len(m.name) + 1)
             res.append(f"- {name}:{pad}{m.description}")
         print("\n".join(res))
