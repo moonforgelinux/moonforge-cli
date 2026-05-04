@@ -183,7 +183,6 @@ def add_conf_dir(project: Project) -> None:
 
 def add_kas_dir(project: Project) -> None:
     project_name = sanitize_project_name(project.name)
-    layer_name = sanitize_layer_name(project.name)
 
     kas_path = project.path / "kas"
     os.makedirs(kas_path, exist_ok=True)
@@ -265,7 +264,7 @@ def run(options):
     machine = get_machine(options.machine)
     if machine is None:
         log.error(f"Invalid target machine {options.machine}. "
-                   "Use 'list-machines' to list the available machines.")
+                  "Use 'list-machines' to list the available machines.")
     features = []
     for feat in options.features:
         f = get_feature(feat)

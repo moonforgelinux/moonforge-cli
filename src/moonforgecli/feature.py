@@ -41,7 +41,6 @@ def run(options) -> int:
         if f is None:
             log.error(f"Invalid feature {feat}.")
         features.append(f)
-    
     for feature in features:
         res = []
         res.append(f"{term.heading('Feature:')} {term.bold(feature.name)}")
