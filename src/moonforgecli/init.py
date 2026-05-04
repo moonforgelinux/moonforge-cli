@@ -1,15 +1,14 @@
 # SPDX-FileCopyrightText: 2026  Igalia S.L.
 # SPDX-License-Identifier: MIT
 
-import argparse
 import os
 import subprocess
 
 from pathlib import Path
 
 from . import log, kas, utils
-from .features import check_conflicts, get_feature
-from .machines import get_machine
+from .features import Feature, check_conflicts, get_feature
+from .machines import Machine, get_machine
 
 
 HELP_MSG = "Initialize a Moonforge project"

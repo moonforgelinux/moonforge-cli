@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 import os
-import sys
 
 from . import log
 

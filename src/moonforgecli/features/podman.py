@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Igalia S.L.
 # SPDX-License-Identifier: MIT
 
-from . import Feature, FeatureFragment, FeatureInclude
+from . import Feature, FeatureInclude
 
 
 PODMAN_FEATURE = Feature(name="podman",

@@ -1,10 +1,6 @@
 # SPDX-FileCopyrightText: 2026  Igalia S.L.
 # SPDX-License-Identifier: MIT
 
-import argparse
-import os
-import sys
-
 from . import log, term
 from .features import available_features, get_feature
 
