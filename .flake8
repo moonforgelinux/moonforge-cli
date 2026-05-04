@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Igalia S.L.
+# SPDX-License-Identifier: MIT
+
+[flake8]
+max-line-length = 140
+doctests = True
+exclude = .git, .eggs, __pycache__, build/, dist/
+#ignore =
