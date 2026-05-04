@@ -67,7 +67,6 @@ class AnsiEscape(object):
     WHITE_BG = 47
     DEFAULT_BG = 49
 
-
     def __init__(self, *args, **kwargs):
         self._text = kwargs.get('text', '')
         self._mods = kwargs.get('mods', AnsiEscape.NONE)
@@ -155,7 +154,7 @@ class AnsiEscape(object):
         return f"{self.pre}{self.text}{self.post}"
 
 
-def red(text) ->str:
+def red(text) -> str:
     return AnsiEscape(text=text).color(fg=AnsiEscape.RED_FG)
 
 

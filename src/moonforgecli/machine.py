@@ -41,7 +41,6 @@ def run(options) -> int:
         if m is None:
             log.error(f"Invalid machine {machine}.")
         machines.append(m)
-    
     for machine in machines:
         res = []
         res.append(f"{term.heading('Machine:')} {term.bold(machine.name)}")
