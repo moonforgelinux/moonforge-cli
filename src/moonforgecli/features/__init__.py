@@ -53,7 +53,7 @@ class Feature:
     variables: list[FeatureVariable] | None = field(default_factory=list)
 
 
-def available_features() -> list[Features]:
+def available_features() -> list[Feature]:
     from .docker import DOCKER_FEATURE
     from .graphics_weston import GRAPHICS_WESTON_FEATURE
     from .graphics_wpe import GRAPHICS_WPE_FEATURE
