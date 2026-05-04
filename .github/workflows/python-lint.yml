@@ -1,0 +1,29 @@
+name: Python Linting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 1
+
+    - name: Set up environment
+      run: |
+        sudo apt update
+        sudo apt install python3-pip python3-flake8 python3-mypy
+
+    - name: Flake8
+      run: |
+        python3 -m flake8 src
+
+    - name: MyPy
+      run: |
+        python3 -m mypy src
