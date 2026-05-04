@@ -1,10 +1,6 @@
 # SPDX-FileCopyrightText: 2026  Igalia S.L.
 # SPDX-License-Identifier: MIT
 
-import argparse
-import os
-import sys
-
 from . import log, term
 from .machines import available_machines, get_machine
 

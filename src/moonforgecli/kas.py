@@ -3,8 +3,8 @@
 
 from dataclasses import dataclass, field
 
-from .features import FeatureFragment, Feature
-from .machines import MachineFragment, Machine
+from .features import Feature
+from .machines import Machine
 
 from . import log
 

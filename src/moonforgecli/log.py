@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 import os
-import platform
 import sys
 import time
 import threading
