@@ -3,6 +3,8 @@
 
 import os
 
+from pathlib import Path
+
 from . import log
 
 
@@ -57,3 +59,25 @@ def sanitize_project_name(name: str) -> str:
     """Sanitizes the project name for use inside a project."""
     tokens = [x.lower() for x in name.split()]
     return tokens[0]
+
+
+def xdg_config_home() -> Path:
+    """Get a path for XDG_CONFIG_HOME."""
+    env_dir = os.environ.get("XDG_CONFIG_HOME")
+    if env_dir is not None:
+        res = Path(env_dir)
+    else:
+        res = Path.home() / ".config"
+    os.makedirs(res, exist_ok=True)
+    return res
+
+
+def xdg_cache_home() -> Path:
+    """Get a path for XDG_CACHE_HOME."""
+    env_dir = os.environ.get("XDG_CACHE_HOME")
+    if env_dir is not None:
+        res = Path(env_dir)
+    else:
+        res = Path.home() / ".cache"
+    os.makedirs(res, exist_ok=True)
+    return res
