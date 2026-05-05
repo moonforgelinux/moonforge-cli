@@ -94,7 +94,7 @@ def sanitize_project_name(name: str) -> str:
 
 
 class Project:
-    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], variables: dict[str], vcs: str):
+    def __init__(self, name: str, path: Path, machine: Machine, features: list[Feature], variables: dict[str, str], vcs: str) -> None:
         self._name = name
         self._path = path
         self._machine = machine
