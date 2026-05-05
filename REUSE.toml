@@ -1,28 +1,28 @@
 version = 1
 SPDX-PackageName = "moonforge-cli"
-SPDX-PackageSupplier = "The Moonforge Project"
+SPDX-PackageSupplier = "Igalia S.L."
 SPDX-PackageDownloadLocation = "https://github.com/moonforgelinux/moonforge-cli"
 
 [[annotations]]
-path = "README.md"
+path = ".github/workflows/*.yml"
 precedence = "aggregate"
-SPDX-FileCopyrightText = "2026 Igalia S.L."
-SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026  Igalia S.L."
+SPDX-License-Identifier = "MIT"
 
 [[annotations]]
-path = "CHANGELOG.md"
+path = ["CHANGELOG.md", "README.md"]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "2026 Igalia S.L."
+SPDX-FileCopyrightText = "2026  Igalia S.L."
 SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
 path = "pyproject.toml"
 precedence = "aggregate"
-SPDX-FileCopyrightText = "2026 Igalia S.L."
-SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026  Igalia S.L."
+SPDX-License-Identifier = "MIT"
 
 [[annotations]]
 path = "src/moonforgecli/.gitignore"
 precedence = "aggregate"
-SPDX-FileCopyrightText = "2026 Igalia S.L."
+SPDX-FileCopyrightText = "2026  Igalia S.L."
 SPDX-License-Identifier = "CC0-1.0"
