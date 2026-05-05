@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 @dataclass
 class MachineFragment:
     """Class for weighted template fragments."""
+
     section: str
     key: str
     value: str
@@ -31,6 +32,7 @@ class MachineRepo:
 @dataclass
 class Machine:
     """Class for machine templates."""
+
     name: str
     description: str
     includes: list[MachineInclude] = field(default_factory=list)

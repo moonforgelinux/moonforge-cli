@@ -4,9 +4,11 @@
 from . import Feature, FeatureInclude
 
 
-PODMAN_FEATURE = Feature(name="podman",
-                         description="Container support using Podman",
-                         includes=[
-                           FeatureInclude("meta-moonforge", "kas/include/layer/meta-moonforge-podman.yml")
-                         ],
-                         conflicts=["docker"])
+PODMAN_FEATURE = Feature(
+    name="podman",
+    description="Container support using Podman",
+    includes=[
+        FeatureInclude("meta-moonforge", "kas/include/layer/meta-moonforge-podman.yml")
+    ],
+    conflicts=["docker"],
+)
