@@ -12,7 +12,7 @@ from . import log
 @dataclass
 class KasInclude:
     """Class for kas include directives."""
-    repo: str
+    repo: str | None
     file: str
 
 
@@ -26,7 +26,8 @@ class KasHeader:
 @dataclass
 class KasFragment:
     section: str
-    text: list[str]
+    key: str
+    value: str
     weight: int = 0
 
 
@@ -37,7 +38,7 @@ class KasRepo:
     url: str | None = None
     commit: str | None = None
     branch: str | None = None
-    layers: list[str] = field(default_factory=list)
+    layers: list[str] | None = None
 
 
 class KasFile:
@@ -47,15 +48,14 @@ class KasFile:
         self._repos: list[KasRepo] = []
         self._distro: str | None = None
         self._machine: Machine | None = None
-        self._features: list[Feature] | None = []
-        self._variables: dict[str, str] | None = {}
+        self._features: list[Feature] = []
+        self._variables: dict[str, str] = {}
         self._local_conf: list[KasFragment] = []
-        self._wks: list[KasFragment] = []
 
     def add_include(self, repo: str | None, file: str) -> None:
         self._header.includes.append(KasInclude(repo, file))
 
-    def add_repo(self, name: str, url: str, commit: str | None = None, branch: str = None) -> None:
+    def add_repo(self, name: str, url: str, commit: str | None = None, branch: str | None = None) -> None:
         for r in self._repos:
             if r.name == name:
                 log.debug(f"Repository {r.name} (url: {r.url}) already exists")
@@ -148,7 +148,7 @@ class KasFile:
                     output.append(f"    commit: {r.commit}")
                 if r.branch is not None:
                     output.append(f"    branch: {r.branch}")
-                if len(r.layers) > 0:
+                if r.layers is not None and len(r.layers) > 0:
                     output.append("    layers:")
                     for layer in r.layers:
                         output.append(f"      {layer}:")
@@ -185,10 +185,9 @@ class KasFile:
         effective_fragments = sorted(seen_keys.values(), key=lambda frag: frag.weight)
 
         # Split fragments into sections
-        sections = {}
+        sections: dict[str, list[KasFragment]] = {}
         for frag in effective_fragments:
-            section = sections.setdefault(f"{frag.weight}_{frag.section}", [])
-            section.append(frag)
+            sections.setdefault(f"{frag.weight}_{frag.section}", []).append(frag)
 
         output = []
         if len(sections) > 0:
