@@ -1,0 +1,26 @@
+name: License Linting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 1
+
+    - name: Set up environment
+      run: |
+        sudo apt update
+        sudo apt install python3-pip
+        sudo pip3 install --break-system-packages reuse
+
+    - name: REUSE
+      run: |
+        python3 -m reuse lint
