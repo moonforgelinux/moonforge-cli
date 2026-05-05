@@ -6,7 +6,7 @@ import os
 from . import log
 
 
-FOUND_PROGRAMS = {}
+FOUND_PROGRAMS: dict[str, str] = {}
 
 
 def find_program(bin_name: str, path: str | None = None, error_if_not_found: bool = False) -> str | None:
