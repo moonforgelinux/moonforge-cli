@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 @dataclass
 class FeatureFragment:
     """Class for weighted template fragments."""
+
     section: str
     key: str
     value: str
@@ -44,6 +45,7 @@ type FeatureOverride = FeatureIncludeOverride | FeatureFragmentOverride | Featur
 @dataclass
 class Feature:
     """Class for feature templates."""
+
     name: str
     description: str
     includes: list[FeatureInclude] = field(default_factory=list)
@@ -59,6 +61,7 @@ def available_features() -> list[Feature]:
     from .graphics_wpe import GRAPHICS_WPE_FEATURE
     from .podman import PODMAN_FEATURE
     from .rauc_simple import RAUC_FEATURE
+
     return [
         DOCKER_FEATURE,
         GRAPHICS_WESTON_FEATURE,

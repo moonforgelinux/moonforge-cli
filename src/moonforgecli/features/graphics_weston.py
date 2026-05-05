@@ -4,9 +4,13 @@
 from . import Feature, FeatureInclude
 
 
-GRAPHICS_WESTON_FEATURE = Feature(name="graphics-weston",
-                                  description="Graphics support, using Weston",
-                                  includes=[
-                                    FeatureInclude("meta-moonforge", "kas/include/layer/meta-moonforge-graphics.yml")
-                                  ],
-                                  conflicts=['graphics-wpe'])
+GRAPHICS_WESTON_FEATURE = Feature(
+    name="graphics-weston",
+    description="Graphics support, using Weston",
+    includes=[
+        FeatureInclude(
+            "meta-moonforge", "kas/include/layer/meta-moonforge-graphics.yml"
+        )
+    ],
+    conflicts=["graphics-wpe"],
+)
