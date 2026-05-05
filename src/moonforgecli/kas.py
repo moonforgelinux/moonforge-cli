@@ -43,7 +43,7 @@ class KasRepo:
 
 class KasFile:
     """Class for kas files."""
-    def __init__(self):
+    def __init__(self) -> None:
         self._header: KasHeader = KasHeader()
         self._repos: list[KasRepo] = []
         self._distro: str | None = None
