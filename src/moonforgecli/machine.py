@@ -37,9 +37,10 @@ def run(options) -> int:
 
     machines = []
     for machine in options.machines:
-        m = get_machine(machine)
-        if m is None:
-            log.error(f"Invalid machine {machine}.")
+        try:
+            m = get_machine(machine)
+        except IndexError as err:
+            log.error(f"{err}")
         machines.append(m)
     for machine in machines:
         res = []

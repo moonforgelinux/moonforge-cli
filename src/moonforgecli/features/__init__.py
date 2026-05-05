@@ -68,30 +68,35 @@ def available_features() -> list[Feature]:
     ]
 
 
-def get_feature(name: str) -> Feature | None:
+def get_feature(name: str) -> Feature:
     for feature in available_features():
         if feature.name == name:
             return feature
-    return None
+    raise IndexError(f"Feature {name} not found")
 
 
-def check_conflicts(name: str, features: list[str]) -> list[str] | None:
-    feature = get_feature(name)
+def check_conflicts(name: str, features: list[str]) -> list[str]:
+    try:
+        feature = get_feature(name)
+    except IndexError:
+        return []
+
     feature_conflicts = getattr(feature, "conflicts", [])
     if len(feature_conflicts) == 0:
-        return None
+        return []
 
     res = []
     for feat in features:
-        check = get_feature(feat)
+        try:
+            check = get_feature(feat)
+        except IndexError:
+            continue
+
         if check.name in feature_conflicts:
             res.append(check.name)
         else:
             check_conflicts = getattr(check, "conflicts", [])
             if feature.name in check_conflicts:
                 res.append(check.name)
-
-    if len(res) == 0:
-        return None
 
     return res

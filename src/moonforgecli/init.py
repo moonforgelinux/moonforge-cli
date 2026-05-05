@@ -6,7 +6,7 @@ import subprocess
 
 from pathlib import Path
 
-from . import log, kas, utils
+from . import log, kas, term, utils
 from .features import Feature, check_conflicts, get_feature
 from .machines import Machine, get_machine
 
@@ -222,7 +222,7 @@ def init_vcs(project: Project) -> None:
                                 stderr=subprocess.PIPE)
         output, err = proc.communicate()
         if proc.returncode:
-            log.warning(f"Unable to initialize VCS: {err}")
+            log.warning(f"Unable to initialize VCS: {err!r}")
             return
     except Exception as e:
         log.warning(f"Unable to initialize VCS: {e}")
@@ -261,17 +261,20 @@ def run(options):
     path = Path(project_path)
     if path.exists() and not path.is_dir():
         log.error(f"Project path {path} exists and is not a directory.")
-    machine = get_machine(options.machine)
-    if machine is None:
+    try:
+        machine = get_machine(options.machine)
+    except IndexError:
         log.error(f"Invalid target machine {options.machine}. "
-                  "Use 'list-machines' to list the available machines.")
+                  f"Use {term.command('machine')} to list the available machines.")
     features = []
     for feat in options.features:
-        f = get_feature(feat)
-        if f is None:
-            log.error(f"Invalid feature {feat}.")
+        try:
+            f = get_feature(feat)
+        except IndexError:
+            log.error(f"Invalid feature {feat}. "
+                      f"Use {term.command('feature')} to list the available features.")
         conflicts = check_conflicts(feat, options.features)
-        if conflicts is not None:
+        if len(conflicts) > 0:
             res = ", ".join(conflicts)
             log.error(f"Feature {feat} conflicts with the following features: {res}")
         features.append(f)
