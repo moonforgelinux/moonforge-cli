@@ -37,9 +37,10 @@ def run(options) -> int:
 
     features = []
     for feat in options.features:
-        f = get_feature(feat)
-        if f is None:
-            log.error(f"Invalid feature {feat}.")
+        try:
+            f = get_feature(feat)
+        except IndexError as err:
+            log.error(f"{err}")
         features.append(f)
     for feature in features:
         res = []
@@ -59,7 +60,7 @@ def run(options) -> int:
             for include in feature.includes:
                 res.append(f"  - {term.green(include.file)} from {term.green(include.repo)}")
             res.append("")
-        if len(feature.conflicts) > 0:
+        if feature.conflicts is not None and len(feature.conflicts) > 0:
             res.append(term.heading("Conflicts:"))
             for conflict in feature.conflicts:
                 res.append(f"  - {term.red(conflict)}")
