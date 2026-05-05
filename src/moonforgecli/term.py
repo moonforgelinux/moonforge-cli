@@ -4,8 +4,11 @@
 import os
 import sys
 
+from enum import Enum
 
-class TermColor:
+
+class TermColor(Enum):
+    """Type of color support inside the terminal."""
     NONE = 0
     EXT = 1
     TRUE = 2
