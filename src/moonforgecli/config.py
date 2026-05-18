@@ -17,20 +17,29 @@ class ConfigSourceType(Enum):
     PROJECT = 0
     USER = 1
 
-    def get_path(self) -> Path:
+    def get_path(self, project_path: Path | None = None) -> Path:
         match self:
             case ConfigSourceType.USER:
                 return xdg_config_home() / "moonforge" / "config.toml"
             case ConfigSourceType.PROJECT:
-                return Path(".moonforge/config.toml")
+                if project_path is not None:
+                    return project_path / ".moonforge" / "config.toml"
+                else:
+                    return Path(".moonforge/config.toml").absolute()
 
 
-# Default values for the "container" section
+# Default keys and values for the "container" section
 CONTAINER_DEFAULTS: dict[str, str] = {
     "engine": "docker",
     "image_path": "ghcr.io/siemens/kas",
     "image_name": "kas",
     "image_version": "4.6",
+}
+
+# Default keys and values for the "build" section
+BUILD_DEFAULTS: dict[str, str] = {
+    "sstate_dir": "@XDG_CACHE_HOME@/moonforge/@PROJECT_NAME@/sstate/",
+    "download_dir": "@XDG_CACHE_HOME@/moonforge/@PROJECT_NAME@/downloads/",
 }
 
 
@@ -45,10 +54,24 @@ class ConfigContainerSection:
     def to_toml(self) -> list[str]:
         return [
             "[container]",
-            f'engine = "{self._container.engine}"',
-            f'image_path = "{self._container.image_path}"',
-            f'image_name = "{self._container.image_name}"',
-            f'image_version = "{self._container.image_version}"',
+            f'engine = "{self.engine}"',
+            f'image_path = "{self.image_path}"',
+            f'image_name = "{self.image_name}"',
+            f'image_version = "{self.image_version}"',
+        ]
+
+
+@dataclass
+class ConfigBuildSection:
+    """Configuration for the 'build' section."""
+    sstate_dir: str = BUILD_DEFAULTS["sstate_dir"]
+    download_dir: str = BUILD_DEFAULTS["download_dir"]
+
+    def to_toml(self) -> list[str]:
+        return [
+            "[build]"
+            f'sstate_dir = "{self.sstate_dir}"',
+            f'download_dir = "{self.download_dir}"',
         ]
 
 
@@ -56,16 +79,17 @@ class ConfigSource:
     def __init__(self, source_type: ConfigSourceType):
         self._source_type = source_type
         self._container = ConfigContainerSection()
+        self._build = ConfigBuildSection()
 
     @property
     def source_type(self) -> ConfigSourceType:
         return self._source_type
 
     @staticmethod
-    def load_all() -> ConfigSource:
+    def load_all(project_path: Path | None = None) -> ConfigSource:
         res = None
         for source_type in ConfigSourceType:
-            path = source_type.get_path().absolute()
+            path = source_type.get_path(project_path)
             if not path.exists():
                 continue
             with path.open(mode="rb") as f:
@@ -78,6 +102,8 @@ class ConfigSource:
                     res = ConfigSource(ConfigSourceType.PROJECT)
                 for key in data.get("container", {}):
                     setattr(res._container, key, data["container"][key])
+                for key in data.get("build", {}):
+                    setattr(res._build, key, data["build"][key])
         if res is None:
             res = ConfigSource(ConfigSourceType.PROJECT)
         return res
@@ -85,7 +111,7 @@ class ConfigSource:
     @staticmethod
     def from_toml(source_type: ConfigSourceType) -> ConfigSource:
         res = ConfigSource(source_type)
-        path = source_type.get_path().absolute()
+        path = source_type.get_path()
         if not path.exists():
             return res
         with open(path, "rb") as f:
@@ -103,21 +129,28 @@ class ConfigSource:
                 res._container.image_path = container.get("image_path", CONTAINER_DEFAULTS["image_path"])
                 res._container.image_name = container.get("image_name", CONTAINER_DEFAULTS["image_name"])
                 res._container.image_version = container.get("image_version", CONTAINER_DEFAULTS["image_version"])
+            build = data.get("build")
+            if build is not None:
+                res._build.sstate_dir = build.get("sstate_dir", BUILD_DEFAULTS["sstate_dir"])
+                res._build.download_dir = build.get("download_dir", BUILD_DEFAULTS["download_dir"])
         return res
 
     def to_toml(self):
-        file_path = self._source_type.get_path().absolute()
+        file_path = self._source_type.get_path()
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         with file_path.open(mode="w", encoding="utf-8") as f:
             res = []
             res.extend(self._container.to_toml())
+            res.extend(self._build.to_toml())
             f.write("\n".join(res))
 
     def __iter__(self):
         keys = []
         for k in self._container.__dict__.keys():
             keys.append(f"container.{k}")
+        for k in self._build.__dict__.keys():
+            keys.append(f"build.{k}")
         return iter(keys)
 
     def __contains__(self, key):
@@ -125,8 +158,11 @@ class ConfigSource:
             (section, subkey) = key.split(".", 1)
         except Exception:
             return False
-        if section == "container":
-            return subkey in CONTAINER_DEFAULTS
+        match section:
+            case "container":
+                return subkey in CONTAINER_DEFAULTS
+            case "build":
+                return subkey in BUILD_DEFAULTS
         return False
 
     def __getitem__(self, key):
@@ -134,24 +170,34 @@ class ConfigSource:
             (section, subkey) = key.split(".", 1)
         except Exception:
             raise KeyError(f"Invalid configuration key {key!r}; use 'section.key'")
-        if section == "container":
-            if subkey not in CONTAINER_DEFAULTS:
-                raise KeyError(f"Unknown key {subkey} inside 'container'")
-            return getattr(self._container, subkey)
-        else:
-            raise KeyError(f"Unknown section {section}")
+        match section:
+            case "container":
+                if subkey not in CONTAINER_DEFAULTS:
+                    raise KeyError(f"Unknown key {subkey} inside 'container'")
+                return getattr(self._container, subkey)
+            case "build":
+                if subkey not in BUILD_DEFAULTS:
+                    raise KeyError(f"Unknown key {subkey} inside 'build'")
+                return getattr(self._build, subkey)
+            case _:
+                raise KeyError(f"Unknown section {section}")
 
     def __setitem__(self, key, value):
         try:
             (section, subkey) = key.split(".", 1)
         except Exception:
             raise KeyError(f"Invalid configuration key {key!r}; use 'section.key'")
-        if section == "container":
-            if subkey not in CONTAINER_DEFAULTS:
-                raise KeyError(f"Unknown key {subkey} inside 'container'")
-            setattr(self._container, subkey, value)
-        else:
-            raise KeyError(f"Unknwon section {section}")
+        match section:
+            case "container":
+                if subkey not in CONTAINER_DEFAULTS:
+                    raise KeyError(f"Unknown key {subkey} inside 'container'")
+                setattr(self._container, subkey, value)
+            case "build":
+                if subkey not in BUILD_DEFAULTS:
+                    raise KeyError(f"Unknown key {subkey} inside 'build'")
+                setattr(self._build, subkey, value)
+            case _:
+                raise KeyError(f"Unknwon section {section}")
 
 
 HELP_MSG = "Configure the Moonforge CLI tool"
