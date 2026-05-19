@@ -7,6 +7,11 @@ from .features import available_features, get_feature
 
 HELP_MSG = "Show feature information"
 
+HELP_DESCRIPTION = """The feature command shows the information related to a Moonforge feature.
+
+Each feature can be used in a Moonforge project at initialization time.
+"""  # noqa: E501
+
 
 def add_args(parser) -> None:
     parser.add_argument("--list", default=False, dest="list", action="store_true",

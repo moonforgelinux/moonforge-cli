@@ -202,6 +202,38 @@ class ConfigSource:
 
 HELP_MSG = "Configure the Moonforge CLI tool"
 
+HELP_DESCRIPTION = """The config command queries, sets, and lists the configuration options for Moonforge.
+
+Each configuration key is composed of a section and a name, separated by a dot.
+
+The config command supports the following actions:
+
+- list: Lists all the keys set in the configuration files, along with their value
+- get: Prints the value of the given key
+- set: Sets the value of the given key
+
+Moonforge uses different configuration files; they are, in order of precendence from least important to most important:
+
+- user configuration, stored under XDG_CONFIG_HOME/moonforge/config.toml
+- project configuration, stored in .moonforge/config.toml under the project's root
+
+Unless specified differently, the config command will query all the configuration files in the same order.
+
+Examples:
+
+# read from all scopes
+moonforge config list
+
+# read from project scope
+moonforge config --project get container.engine
+
+# write to the user scope
+moonforge config --user set container.engine podman
+
+# read from all scopes, write to the project scope
+moonforge config set container.engine podman
+"""
+
 
 def add_args(parser):
     parser.add_argument("--project", dest="config", action="store_const", const="project",

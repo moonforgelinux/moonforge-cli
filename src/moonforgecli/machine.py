@@ -7,6 +7,11 @@ from .machines import available_machines, get_machine
 
 HELP_MSG = "Show feature information"
 
+HELP_DESCRIPTION = """The machine command shows the information related to a target machine.
+
+Each machine can be used in a Moonforge project at initialization time.
+"""  # noqa: E501
+
 
 def add_args(parser) -> None:
     parser.add_argument("--list", default=False, dest="list", action="store_true",

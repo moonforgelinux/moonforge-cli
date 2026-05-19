@@ -14,6 +14,40 @@ from .project import Project
 
 HELP_MSG = "Initialize a Moonforge project"
 
+HELP_DESCRIPTION = """The init command initializes a Moonforge project at the given PATH.
+
+You can specify the target machine and the features for the project at initialization time; the init command will take care of defining the various kas files and the necessary repositories, as well as creating the distro layer for your Moonforge project.
+
+Examples:
+
+- Initialize a new project called "derivative" in the meta-derivative
+  directory:
+
+    moonforge init --name=derivative meta-derivative
+
+- Initialize a new project for Raspberry Pi 5 in the current directory:
+
+    moonforge init --machine=raspberrypi5 --name=derivative
+
+- Initialize a new project with RAUC simple updates and Podman support:
+
+    moonforge init \\
+      --name derivative \\
+      --feature rauc-simple \\
+      --feature podman \\
+      meta-derivative
+
+- Initialize the current directory as a Moonforge project with Docker support,
+  and WPE support, pointing to the Moonforge website:
+
+    moonforge init \\
+      --name derivative \\
+      --feature docker \\
+      --feature graphics-wpe \\
+      --variable WAYLAND_COG_LAUNCH_URL=https://moonforgelinux.org \\
+      meta-derivative
+"""  # noqa: E501
+
 README_FORMAT = """# {project_name}
 
 This is a Moonforge OS derivative distribution.
@@ -31,13 +65,13 @@ Install the kas container with the required tooling using pip:
 ```sh
 $ pip install --user kas==5.0
 ```
-"""
+"""  # noqa: E501
 
 DISTRO_README_FORMAT = """# meta-{project_name}-distro
 
 This layer extends meta-moonforge-distro with customizations needed to build a
 derivative distribution.
-"""
+"""  # noqa: E501
 
 LAYER_CONF_FORMAT = """# {project_name} layer configuration
 BBPATH .= ":${{LAYERDIR}}"
@@ -48,7 +82,7 @@ BBFILE_PRIORITY_{layer_name}-distro = "20"
 
 LAYERDEPENDS_{layer_name}-distro = "core meta-moonforge-distro"
 LAYERSERIES_COMPAT_{layer_name}-distro = "scarthgap"
-"""
+"""  # noqa: E501
 
 PROJECT_CONF_FORMAT = """# {project_name} distro configuration
 require conf/distro/moonforge.conf
@@ -58,11 +92,11 @@ DISTRO_NAME = "Full project name"
 DISTRO_VERSION = "1.0"
 
 MAINTAINER = "Someone <someone@example.com>"
-"""
+"""  # noqa: E501
 
 IMAGE_BASE_FORMAT = """# {project_name} image base
 IMAGE_FEATURES += "ssh-server-openssh"
-"""
+"""  # noqa: E501
 
 META_MOONFORGE_YML = """header:
   version: 16
@@ -72,7 +106,7 @@ repos:
     url: {url}
     commit: {commit}
     branch: {branch}
-"""
+"""  # noqa: E501
 
 META_MOONFORGE_URL = "https://github.com/moonforgelinux/meta-moonforge.git"
 
