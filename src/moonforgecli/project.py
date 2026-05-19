@@ -23,6 +23,10 @@ PROJECT_META: dict[str, str] = {
     "PROJECT_NAME": "name",
 }
 
+MACHINE_META: dict[str, str] = {
+    "MACHINE_NAME": "name",
+}
+
 
 class Project:
     """The metadata for a Moonforge project."""
@@ -127,4 +131,8 @@ class Project:
         for env in PROJECT_META:
             data = getattr(self, PROJECT_META[env], "")
             res = res.replace(f"@{env}@", data)
+        if self.machine is not None:
+            for env in MACHINE_META:
+                data = getattr(self.machine, MACHINE_META[env], "")
+                res = res.replace(f"@{env}@", data)
         return Path(res)

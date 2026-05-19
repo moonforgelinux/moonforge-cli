@@ -29,6 +29,7 @@ The values of 'build.sstate_dir' and 'build.download_dir' can contain these plac
 - @XDG_CONFIG_HOME@: expands to the XDG_CONFIG_HOME environment variable
 - @HOME@: expands to the HOME environment variable
 - @PROJECT_NAME@: expands to the project's name
+- @MACHINE_NAME@: expands to the project's machine name
 
 The build artefacts are stored in the "build" directory.
 
