@@ -73,7 +73,12 @@ def safe_path_replace(path: str, project: Project, source: ConfigSource) -> Path
     return Path(res)
 
 
-def build_project(project: Project, source: ConfigSource, fragments: list[Path]) -> int:
+def build_project(
+    project: Project,
+    source: ConfigSource,
+    fragments: list[Path],
+    runtime_args: str | None,
+) -> int:
     log.info(f"Building project {project.name} at {project.path}")
     log.info(f"Machine: {project.machine.name}")
     features = ", ".join([f.name for f in project.features])
@@ -170,6 +175,9 @@ def build_project(project: Project, source: ConfigSource, fragments: list[Path])
             "--userns=keep-id",
         ])
 
+    if runtime_args is not None:
+        cmdline.append(runtime_args)
+
     cmdline.append(container_image)
 
     # All fragment paths are normalized and resolved to ensure that they
@@ -197,6 +205,7 @@ def build_project(project: Project, source: ConfigSource, fragments: list[Path])
 def add_args(parser):
     parser.add_argument("--fragment", metavar="FILE", dest="fragments",
                         action="append", default=[], help="additional kas fragments")
+    parser.add_argument("--runtime-args", help="additional arguments for the container runtime")
     parser.add_argument("path", metavar="PATH", default=".",
                         help="the path of the project")
 
@@ -219,4 +228,4 @@ def run(options):
             log.error(f"Unable to resolve fragment {frag}: {err}")
         fragments.append(p)
     log.info(f"Fragments: {fragments}")
-    return build_project(project, source, fragments)
+    return build_project(project, source, fragments, options.runtime_args)
