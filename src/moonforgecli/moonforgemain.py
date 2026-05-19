@@ -9,7 +9,7 @@ import traceback
 from dataclasses import dataclass
 
 from . import log
-from . import build, config, feature, init, machine
+from . import build, config, feature, init, machine, shell
 
 
 VERSION = "2026.1"
@@ -40,6 +40,11 @@ class MoonforgeApp:
                          add_args_func=self.add_help_args,
                          run_func=self.run_help_cmd,
                          help_msg='Show the help for gi-docgen or a sub-command')
+        self.add_command('config',
+                         add_args_func=config.add_args,
+                         run_func=config.run,
+                         help_msg=config.HELP_MSG,
+                         help_desc=config.HELP_DESCRIPTION)
         self.add_command('init',
                          add_args_func=init.add_args,
                          run_func=init.run,
@@ -60,11 +65,12 @@ class MoonforgeApp:
                          run_func=build.run,
                          help_msg=build.HELP_MSG,
                          help_desc=build.HELP_DESCRIPTION)
-        self.add_command('config',
-                         add_args_func=config.add_args,
-                         run_func=config.run,
-                         help_msg=config.HELP_MSG,
-                         help_desc=config.HELP_DESCRIPTION)
+        self.add_command('shell',
+                         add_args_func=shell.add_args,
+                         run_func=shell.run,
+                         help_msg=shell.HELP_MSG,
+                         help_desc=shell.HELP_DESCRIPTION,
+                         aliases=["sh"])
 
     def run(self, args):
         """
