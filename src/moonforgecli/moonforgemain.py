@@ -6,11 +6,21 @@ import shutil
 import sys
 import traceback
 
+from dataclasses import dataclass
+
 from . import log
 from . import build, config, feature, init, machine
 
 
 VERSION = "2026.1"
+
+
+@dataclass
+class MoonforgeCommand:
+    name: str
+    short_desc: str
+    long_desc: str | None
+    parser: argparse.ArgumentParser
 
 
 class MoonforgeApp:
@@ -33,23 +43,28 @@ class MoonforgeApp:
         self.add_command('init',
                          add_args_func=init.add_args,
                          run_func=init.run,
-                         help_msg=init.HELP_MSG)
+                         help_msg=init.HELP_MSG,
+                         help_desc=init.HELP_DESCRIPTION)
         self.add_command('feature',
                          add_args_func=feature.add_args,
                          run_func=feature.run,
-                         help_msg=feature.HELP_MSG)
+                         help_msg=feature.HELP_MSG,
+                         help_desc=feature.HELP_DESCRIPTION)
         self.add_command('machine',
                          add_args_func=machine.add_args,
                          run_func=machine.run,
-                         help_msg=machine.HELP_MSG)
+                         help_msg=machine.HELP_MSG,
+                         help_desc=machine.HELP_DESCRIPTION)
         self.add_command('build',
                          add_args_func=build.add_args,
                          run_func=build.run,
-                         help_msg=build.HELP_MSG)
+                         help_msg=build.HELP_MSG,
+                         help_desc=build.HELP_DESCRIPTION)
         self.add_command('config',
                          add_args_func=config.add_args,
                          run_func=config.run,
-                         help_msg=config.HELP_MSG)
+                         help_msg=config.HELP_MSG,
+                         help_desc=config.HELP_DESCRIPTION)
 
     def run(self, args):
         """
@@ -74,7 +89,7 @@ class MoonforgeApp:
             traceback.print_exc()
             return 1
 
-    def add_command(self, name, add_args_func, run_func, help_msg, aliases=[]):
+    def add_command(self, name, add_args_func, run_func, help_msg, help_desc=None, aliases=[]):
         """
         Add a command to the application.
 
@@ -90,11 +105,18 @@ class MoonforgeApp:
         p.add_argument("-q", "--quiet", action="store_true", help="suppress messages except warnings")
         p.add_argument("--fatal-warnings", action="store_true", help="whether warnings are fatal")
 
+        command = MoonforgeCommand(
+            name=name,
+            short_desc=help_msg,
+            long_desc=help_desc,
+            parser=p,
+        )
+
         if add_args_func:
             add_args_func(p)
         p.set_defaults(run_func=run_func)
         for i in [name] + aliases:
-            self.commands[i] = p
+            self.commands[i] = command
 
     def add_help_args(self, parser):
         parser.add_argument("-v", "--version", action="store_true", help="show the version of moonforge")
@@ -104,11 +126,15 @@ class MoonforgeApp:
         if options.version:
             print(VERSION)
         elif options.command:
-            known_commands = list(self.commands.keys())
-            if options.command not in known_commands:
-                log.error(f'Unknown command {options.command}.')
-                return 1
-            self.commands[options.command].print_help()
+            try:
+                cmd = self.commands[options.command]
+                res = cmd.parser.format_help().splitlines(keepends=True)
+                if cmd.long_desc is not None:
+                    res.append("\n")
+                    res.extend(cmd.long_desc.splitlines(keepends=True))
+                print("".join(res))
+            except KeyError:
+                log.error(f"Unknown command {options.command}.\n{self.parser.format_usage()}")
         else:
             self.parser.print_help()
         return 0
