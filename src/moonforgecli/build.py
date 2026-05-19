@@ -114,10 +114,10 @@ def build_project(
     except Exception as err:
         log.error(f"Unable to create cache directories: {err}")
 
-    cmdline = [utils.find_program(source["container.engine"], error_if_not_found=True)]
-    cmdline.extend([
-        "run",
-    ])
+    engine = utils.find_program(source["container.engine"], error_if_not_found=True)
+    assert engine is not None
+
+    cmdline = [engine, "run"]
 
     cmdline.extend([
         "-v", f"{project.path}:/repo:ro",
@@ -134,9 +134,6 @@ def build_project(
         "-e", f"GROUP_ID={os.getgid()}",
         "--rm",
         "--init",
-    ])
-
-    cmdline.extend([
     ])
 
     kas_env = {
