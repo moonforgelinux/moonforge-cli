@@ -33,7 +33,7 @@ CONTAINER_DEFAULTS: dict[str, str] = {
     "engine": "docker",
     "image_path": "ghcr.io/siemens/kas",
     "image_name": "kas",
-    "image_version": "4.6",
+    "image_version": "5.0",
 }
 
 # Default keys and values for the "build" section
