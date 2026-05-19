@@ -36,11 +36,17 @@ The build artefacts are stored in the "build" directory.
 
 Examples:
 
-# Build the project in the current directory
-$ moonforge build .
+- Build the project in the current directory:
 
-# Build the project in the Project/derivative directory
-$ moonforge build Project/derivative
+    moonforge build .
+
+- Build the project in the Project/derivative directory:
+
+    moonforge build Project/derivative
+
+- Build the project in the current directory, with an additional fragment:
+
+    moonforge build --fragment kas/common/debug.yml .
 """
 
 
@@ -67,7 +73,7 @@ def safe_path_replace(path: str, project: Project, source: ConfigSource) -> Path
     return Path(res)
 
 
-def build_project(project: Project, source: ConfigSource) -> int:
+def build_project(project: Project, source: ConfigSource, fragments: list[Path]) -> int:
     log.info(f"Building project {project.name} at {project.path}")
     log.info(f"Machine: {project.machine.name}")
     features = ", ".join([f.name for f in project.features])
@@ -166,7 +172,17 @@ def build_project(project: Project, source: ConfigSource) -> int:
 
     cmdline.append(container_image)
 
-    cmdline.extend(["build", str(Path("/repo/kas") / kas_file)])
+    # All fragment paths are normalized and resolved to ensure that they
+    # exist before creating the execution environment; now we have to
+    # normalize them again against the volume exposed in the container
+    project_basedir = project.path.name
+    fragment_files = [str(Path("/repo/kas") / kas_file)]
+    for kf in fragments:
+        idx = kf.parts.index(project_basedir)
+        fragment_files.append(str(Path("/repo").joinpath(*kf.parts[idx + 1:])))
+
+    kas_files = ":".join(fragment_files)
+    cmdline.extend(["build", kas_files])
 
     log.debug(f"cmdline: {' '.join(cmdline)}")
 
@@ -179,6 +195,8 @@ def build_project(project: Project, source: ConfigSource) -> int:
 
 
 def add_args(parser):
+    parser.add_argument("--fragment", metavar="FILE", dest="fragments",
+                        action="append", default=[], help="additional kas fragments")
     parser.add_argument("path", metavar="PATH", default=".",
                         help="the path of the project")
 
@@ -193,4 +211,12 @@ def run(options):
         log.error(f"Project path {path} exists and is not a directory.")
     project = Project.from_toml(path)
     source = ConfigSource.load_all(project_path=path)
-    return build_project(project, source)
+    fragments = []
+    for frag in options.fragments:
+        try:
+            p = Path(frag).resolve(strict=True)
+        except OSError as err:
+            log.error(f"Unable to resolve fragment {frag}: {err}")
+        fragments.append(p)
+    log.info(f"Fragments: {fragments}")
+    return build_project(project, source, fragments)
