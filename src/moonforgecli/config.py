@@ -69,7 +69,7 @@ class ConfigBuildSection:
 
     def to_toml(self) -> list[str]:
         return [
-            "[build]"
+            "[build]",
             f'sstate_dir = "{self.sstate_dir}"',
             f'download_dir = "{self.download_dir}"',
         ]
