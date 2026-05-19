@@ -23,7 +23,7 @@ log_epoch: int = 0
 log_lock: threading.Lock = threading.Lock()
 
 
-logged_once = set()
+logged_once: set[str] = set()
 
 
 class Location(object):
