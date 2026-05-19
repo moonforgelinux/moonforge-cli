@@ -47,7 +47,7 @@ Examples:
 - Build the project in the current directory, with an additional fragment:
 
     moonforge build --fragment kas/common/debug.yml .
-"""
+"""  # noqa: E501
 
 
 SAFE_PATHS: dict[str, Callable] = {
