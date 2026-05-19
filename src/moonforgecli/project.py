@@ -3,12 +3,25 @@
 
 import tomllib
 
+from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 
 from . import kas, log, utils
 
 from .features import Feature, get_feature
 from .machines import Machine, get_machine
+
+
+SAFE_PATHS: dict[str, Callable] = {
+    "XDG_CACHE_HOME": utils.xdg_cache_home,
+    "XDG_CONFIG_HOME": utils.xdg_config_home,
+    "HOME": Path.home,
+}
+
+PROJECT_META: dict[str, str] = {
+    "PROJECT_NAME": "name",
+}
 
 
 class Project:
@@ -104,3 +117,14 @@ class Project:
         if len(variables) > 0:
             res.append(f"variables = [ {', '.join(variables)} ]")
         return "\n".join(res)
+
+    def safe_path_replace(self, path: str) -> Path:
+        """Replace known variables inside paths."""
+        res = path
+        for env in SAFE_PATHS:
+            path_gen = partial(SAFE_PATHS[env])
+            res = res.replace(f"@{env}@", str(path_gen()))
+        for env in PROJECT_META:
+            data = getattr(self, PROJECT_META[env], "")
+            res = res.replace(f"@{env}@", data)
+        return Path(res)

@@ -4,8 +4,6 @@
 import os
 import subprocess
 
-from collections.abc import Callable
-from functools import partial
 from pathlib import Path
 
 from . import log, utils
@@ -50,29 +48,6 @@ Examples:
 """  # noqa: E501
 
 
-SAFE_PATHS: dict[str, Callable] = {
-    "XDG_CACHE_HOME": utils.xdg_cache_home,
-    "XDG_CONFIG_HOME": utils.xdg_config_home,
-    "HOME": Path.home,
-}
-
-PROJECT_META: dict[str, str] = {
-    "PROJECT_NAME": "name",
-}
-
-
-def safe_path_replace(path: str, project: Project, source: ConfigSource) -> Path:
-    """Replace known variables inside paths."""
-    res = path
-    for env in SAFE_PATHS:
-        path_gen = partial(SAFE_PATHS[env])
-        res = res.replace(f"@{env}@", str(path_gen()))
-    for env in PROJECT_META:
-        data = getattr(project, PROJECT_META[env], "")
-        res = res.replace(f"@{env}@", data)
-    return Path(res)
-
-
 def shell_setup(
     project: Project,
     source: ConfigSource,
@@ -92,9 +67,9 @@ def shell_setup(
     log.info(f"KAS file: {kas_file}")
     container_image = f"{source['container.image_path']}/{source['container.image_name']}:{source['container.image_version']}"
     log.info(f"KAS container image: {container_image}")
-    sstate_dir = safe_path_replace(source["build.sstate_dir"], project, source)
+    sstate_dir = project.safe_path_replace(source["build.sstate_dir"])
     log.debug(f"SSTATE_DIR = {sstate_dir}")
-    dl_dir = safe_path_replace(source["build.download_dir"], project, source)
+    dl_dir = project.safe_path_replace(source["build.download_dir"])
     log.debug(f"DL_DIR = {dl_dir}")
 
     work_dir = os.getcwd()
