@@ -64,8 +64,8 @@ class Project:
             kf.add_variable(key, self._variables[key])
         return str(kf)
 
-    @staticmethod
-    def from_toml(path: Path) -> Project:
+    @classmethod
+    def from_toml(cls, path: Path) -> "Project":
         project_toml_path = path.absolute() / ".moonforge" / "project.toml"
         if not path.exists():
             log.error(f"No project found at {path}")
@@ -84,7 +84,7 @@ class Project:
                     variables[key] = value
                 except ValueError:
                     log.warning(f"Invalid variable {variable} in configuration")
-            return Project(name, path.absolute(), machine, features, variables, "none")
+            return cls(name, path.absolute(), machine, features, variables, "none")
 
     def to_toml(self) -> str:
         res = [

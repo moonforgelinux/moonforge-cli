@@ -85,8 +85,8 @@ class ConfigSource:
     def source_type(self) -> ConfigSourceType:
         return self._source_type
 
-    @staticmethod
-    def load_all(project_path: Path | None = None) -> ConfigSource:
+    @classmethod
+    def load_all(cls, project_path: Path | None = None) -> "ConfigSource":
         res = None
         for source_type in ConfigSourceType:
             path = source_type.get_path(project_path)
@@ -99,18 +99,18 @@ class ConfigSource:
                     log.warning(f"Invalid configuration at {path}: {err}")
                     continue
                 if res is None:
-                    res = ConfigSource(ConfigSourceType.PROJECT)
+                    res = cls(ConfigSourceType.PROJECT)
                 for key in data.get("container", {}):
                     setattr(res._container, key, data["container"][key])
                 for key in data.get("build", {}):
                     setattr(res._build, key, data["build"][key])
         if res is None:
-            res = ConfigSource(ConfigSourceType.PROJECT)
+            res = cls(ConfigSourceType.PROJECT)
         return res
 
-    @staticmethod
-    def from_toml(source_type: ConfigSourceType) -> ConfigSource:
-        res = ConfigSource(source_type)
+    @classmethod
+    def from_toml(cls, source_type: ConfigSourceType) -> "ConfigSource":
+        res = cls(source_type)
         path = source_type.get_path()
         if not path.exists():
             return res
