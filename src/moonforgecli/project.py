@@ -85,7 +85,7 @@ class Project:
     def from_toml(cls, path: Path) -> "Project":
         project_toml_path = path.absolute() / ".moonforge" / "project.toml"
         if not path.exists():
-            log.error(f"No project found at {path}")
+            log.error(f"No project found at {path}; use 'moonforge init' to initialize a project.")
         with open(project_toml_path, "rb") as f:
             try:
                 data = tomllib.load(f)
