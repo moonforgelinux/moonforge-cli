@@ -9,7 +9,7 @@ from pathlib import Path
 from . import log, term, utils
 from .features import check_conflicts, get_feature
 from .machines import get_machine
-from .project import Project
+from .project import Project, EDITION_DEFAULT
 
 
 HELP_MSG = "Initialize a Moonforge project"
@@ -278,5 +278,13 @@ def run(options):
         if not found:
             log.error(f"Variable {key} is not part of any feature")
         variables[key] = value
-    project = Project(project_name, path, machine, features, variables, options.vcs)
+    project = Project(
+        edition=EDITION_DEFAULT,
+        name=project_name,
+        path=path,
+        machine=machine,
+        features=features,
+        variables=variables,
+        vcs=options.vcs,
+    )
     return init_project(project)
