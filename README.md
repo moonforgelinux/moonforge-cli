@@ -57,15 +57,22 @@ Once a Moonforge has been initialized, you can build it using the `build`
 command:
 
 ```sh
-$ moonforge init --name=test ~/Projects/meta-test
-$ moonforge build ~/Projects/meta-test
+$ mkdir workspace
+$ cd workspace
+$ mkdir cache
+$ moonforge init --name=test meta-test
+$ cd meta-test
+$ moonforge config set container.engine podman
+$ moonforge config set build.download_dir $PWD/../cache/downloads
+$ moonforge config set build.sstate_dir $PWD/../cache/sstate-cache
+$ moonforge build .
 ```
 
 You can use the `shell` command to enter an interactive shell in the build
 environment:
 
 ```sh
-$ moonforge shell ~/Projects/meta-test
+$ moonforge shell .
 ```
 
 Copyright and licensing terms
