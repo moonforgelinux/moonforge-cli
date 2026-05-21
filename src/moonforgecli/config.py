@@ -52,13 +52,20 @@ class ConfigContainerSection:
     image_version: str = CONTAINER_DEFAULTS["image_version"]
 
     def to_toml(self) -> list[str]:
-        return [
-            "[container]",
-            f'engine = "{self.engine}"',
-            f'image_path = "{self.image_path}"',
-            f'image_name = "{self.image_name}"',
-            f'image_version = "{self.image_version}"',
-        ]
+        opts = []
+        if self.engine != CONTAINER_DEFAULTS["engine"]:
+            opts.append(f'engine = "{self.engine}"')
+        if self.image_path != CONTAINER_DEFAULTS["image_path"]:
+            opts.append(f'image_path = "{self.image_path}"')
+        if self.image_name != CONTAINER_DEFAULTS["image_name"]:
+            opts.append(f'image_name = "{self.image_name}"')
+        if self.image_version != CONTAINER_DEFAULTS["image_version"]:
+            opts.append(f'image_version = "{self.image_version}"')
+        if len(opts) > 0:
+            res = ["[container]"] + opts
+        else:
+            res = [""]
+        return res
 
 
 @dataclass
@@ -68,11 +75,16 @@ class ConfigBuildSection:
     download_dir: str = BUILD_DEFAULTS["download_dir"]
 
     def to_toml(self) -> list[str]:
-        return [
-            "[build]",
-            f'sstate_dir = "{self.sstate_dir}"',
-            f'download_dir = "{self.download_dir}"',
-        ]
+        opts = []
+        if self.sstate_dir != BUILD_DEFAULTS["sstate_dir"]:
+            opts.append(f'sstate_dir = "{self.sstate_dir}"')
+        if self.download_dir != BUILD_DEFAULTS["download_dir"]:
+            opts.append(f'download_dir = "{self.download_dir}"')
+        if len(opts) > 0:
+            res = ["[build]"] + opts
+        else:
+            res = [""]
+        return res
 
 
 class ConfigSource:
