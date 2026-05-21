@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 
 from . import log, term, utils
+from .config import ConfigSource, ConfigSourceType
 from .features import check_conflicts, get_feature
 from .machines import get_machine
 from .project import Project, EDITION_DEFAULT
@@ -163,6 +164,10 @@ def add_meta_dir(project: Project) -> None:
     os.makedirs(meta_path, exist_ok=True)
     with open(meta_path / "project.toml", "w", encoding="utf-8") as f:
         f.write(project.to_toml())
+
+    log.info(f"Creating core configuration for {project.name}")
+    config = ConfigSource(ConfigSourceType.PROJECT)
+    config.to_toml(project.path)
 
 
 def add_kas_dir(project: Project) -> None:
