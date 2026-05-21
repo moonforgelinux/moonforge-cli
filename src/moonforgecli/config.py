@@ -14,8 +14,8 @@ from .utils import xdg_config_home
 
 class ConfigSourceType(Enum):
     """Type of configuration file source."""
-    PROJECT = 0
-    USER = 1
+    USER = 0
+    PROJECT = 1
 
     def get_path(self, project_path: Path | None = None) -> Path:
         match self:
@@ -27,6 +27,11 @@ class ConfigSourceType(Enum):
                 else:
                     return Path(".moonforge/config.toml").absolute()
 
+
+# Default keys and values for the "core" section
+CORE_DEFAULTS: dict[str, str] = {
+    "version": "0",
+}
 
 # Default keys and values for the "container" section
 CONTAINER_DEFAULTS: dict[str, str] = {
@@ -41,6 +46,18 @@ BUILD_DEFAULTS: dict[str, str] = {
     "sstate_dir": "@XDG_CACHE_HOME@/moonforge/@PROJECT_NAME@/sstate/",
     "download_dir": "@XDG_CACHE_HOME@/moonforge/@PROJECT_NAME@/downloads/",
 }
+
+
+@dataclass
+class ConfigCoreSection:
+    """Configuration for the 'core' section."""
+    version: str = "0"
+
+    def to_toml(self) -> list[str]:
+        return [
+            "[core]",
+            f'version = "{self.version}"',
+        ]
 
 
 @dataclass
@@ -90,12 +107,16 @@ class ConfigBuildSection:
 class ConfigSource:
     def __init__(self, source_type: ConfigSourceType):
         self._source_type = source_type
+        self._core = ConfigCoreSection()
         self._container = ConfigContainerSection()
         self._build = ConfigBuildSection()
 
     @property
     def source_type(self) -> ConfigSourceType:
         return self._source_type
+
+    def update_source_type(self, source_type: ConfigSourceType) -> None:
+        self._source_type = source_type
 
     @classmethod
     def load_all(cls, project_path: Path | None = None) -> "ConfigSource":
@@ -110,14 +131,20 @@ class ConfigSource:
                 except Exception as err:
                     log.warning(f"Invalid configuration at {path}: {err}")
                     continue
+                log.debug(f"Loading configuration from {path} (source_type: {source_type})")
                 if res is None:
-                    res = cls(ConfigSourceType.PROJECT)
+                    res = cls(source_type)
+                else:
+                    log.debug(f"Updating source type to {source_type}")
+                    res.update_source_type(source_type)
+                for key in data.get("core", {}):
+                    setattr(res._core, key, data["core"][key])
                 for key in data.get("container", {}):
                     setattr(res._container, key, data["container"][key])
                 for key in data.get("build", {}):
                     setattr(res._build, key, data["build"][key])
         if res is None:
-            res = cls(ConfigSourceType.PROJECT)
+            res = cls(ConfigSourceType.USER)
         return res
 
     @classmethod
@@ -135,6 +162,9 @@ class ConfigSource:
                 else:
                     log.warning(f"Invalid configuration at {path}: {err}")
                 return res
+            core = data.get("core")
+            if core is not None:
+                res._core.version = core.get("version", CORE_DEFAULTS["version"])
             container = data.get("container")
             if container is not None:
                 res._container.engine = container.get("engine", CONTAINER_DEFAULTS["engine"])
@@ -147,18 +177,21 @@ class ConfigSource:
                 res._build.download_dir = build.get("download_dir", BUILD_DEFAULTS["download_dir"])
         return res
 
-    def to_toml(self):
-        file_path = self._source_type.get_path()
+    def to_toml(self, project_path: Path | None = None):
+        file_path = self._source_type.get_path(project_path)
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         with file_path.open(mode="w", encoding="utf-8") as f:
             res = []
+            res.extend(self._core.to_toml())
             res.extend(self._container.to_toml())
             res.extend(self._build.to_toml())
             f.write("\n".join(res))
 
     def __iter__(self):
         keys = []
+        for k in self._core.__dict__.keys():
+            keys.append(f"core.{k}")
         for k in self._container.__dict__.keys():
             keys.append(f"container.{k}")
         for k in self._build.__dict__.keys():
@@ -171,6 +204,8 @@ class ConfigSource:
         except Exception:
             return False
         match section:
+            case "core":
+                return subkey in CORE_DEFAULTS
             case "container":
                 return subkey in CONTAINER_DEFAULTS
             case "build":
@@ -183,6 +218,10 @@ class ConfigSource:
         except Exception:
             raise KeyError(f"Invalid configuration key {key!r}; use 'section.key'")
         match section:
+            case "core":
+                if subkey not in CORE_DEFAULTS:
+                    raise KeyError(f"Unknown key {subkey} inside 'core'")
+                return getattr(self._core, subkey)
             case "container":
                 if subkey not in CONTAINER_DEFAULTS:
                     raise KeyError(f"Unknown key {subkey} inside 'container'")
@@ -200,6 +239,10 @@ class ConfigSource:
         except Exception:
             raise KeyError(f"Invalid configuration key {key!r}; use 'section.key'")
         match section:
+            case "core":
+                if subkey not in CORE_DEFAULTS:
+                    raise KeyError(f"Unknown key {subkey} inside 'core'")
+                setattr(self._core, subkey, value)
             case "container":
                 if subkey not in CONTAINER_DEFAULTS:
                     raise KeyError(f"Unknown key {subkey} inside 'container'")
@@ -267,7 +310,10 @@ def run(options):
             source = ConfigSource.from_toml(ConfigSourceType.USER)
 
         case _:
+            log.debug("Loading all configuration sources")
             source = ConfigSource.load_all()
+
+    log.debug(f"Using source: {source.source_type} (config: {options.config})")
 
     if options.action == "get":
         if options.value is not None:
