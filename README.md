@@ -41,7 +41,7 @@ $ moonforge init \
 > Projects/meta-derivative
 ```
 
-You can also set layer-specific variables at initalization time:
+You can also set layer-specific variables at initialization time:
 
 ```sh
 $ moonforge init \
