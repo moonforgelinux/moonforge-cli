@@ -32,6 +32,7 @@ EDITIONS: dict[str, list[str]] = {
         "edition",
         "name",
         "machine",
+        "features",
         "variables",
         "vcs",
     ],
