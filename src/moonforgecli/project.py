@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: 2026  Igalia S.L.
 # SPDX-License-Identifier: MIT
 
-import tomllib
+try:
+    import tomllib              # type: ignore
+except ImportError:
+    import tomli as tomllib     # type: ignore
 
 from collections.abc import Callable
 from functools import partial
