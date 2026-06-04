@@ -11,9 +11,10 @@ moonforge_bin = Path(sys.argv[0]).resolve()
 if (moonforge_bin.parent / 'src' / 'moonforgecli').is_dir():
     sys.path.insert(0, str(moonforge_bin.parent / 'src'))
 
-from moonforgecli import moonforgemain
 
 if __name__ == '__main__':
+    from moonforgecli import moonforgemain
+
     """Main entry point. Instantiates the moonforge application and runs it."""
     if sys.version_info < (3, 10):  # pragma: no cover
         print(f"moonforge requires Python >= 3.10, but you have version {sys.version_info}")
