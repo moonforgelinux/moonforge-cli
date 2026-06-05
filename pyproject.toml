@@ -38,3 +38,10 @@ moonforge = "moonforgecli:moonforgemain.main"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.lint.dependencies]
+flake8 = "^6.1.0"
+mypy = "^1.18"
+
+[tool.poetry.group.dev]
+include-groups = ["lint"]
