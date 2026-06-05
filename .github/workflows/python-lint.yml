@@ -15,16 +15,19 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Set up environment
-      run: |
-        sudo apt update
-        sudo apt install python3-pip
-        sudo pip3 install --break-system-packages flake8 mypy
+    - name: "Set up Python"
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: "pyproject.toml"
+        cache: "pip"
+    - run: |
+        pip install poetry
+        poetry install --with lint
 
     - name: Flake8
       run: |
-        python3 -m flake8 src
+        poetry run flake8
 
     - name: MyPy
       run: |
-        python3 -m mypy src
+        poetry run mypy src
