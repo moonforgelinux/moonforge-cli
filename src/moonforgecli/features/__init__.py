@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 from dataclasses import dataclass, field
+from typing import TypeAlias
 
 
 @dataclass
@@ -36,10 +37,10 @@ class FeatureRepo:
     layers: list[str] = field(default_factory=list)
 
 
-type FeatureIncludeOverride = dict[str, list[FeatureInclude]]
-type FeatureFragmentOverride = dict[str, list[FeatureFragment]]
-type FeatureRepoOverride = dict[str, list[FeatureRepo]]
-type FeatureOverride = FeatureIncludeOverride | FeatureFragmentOverride | FeatureRepoOverride
+FeatureIncludeOverride: TypeAlias = dict[str, list[FeatureInclude]]
+FeatureFragmentOverride: TypeAlias = dict[str, list[FeatureFragment]]
+FeatureRepoOverride: TypeAlias = dict[str, list[FeatureRepo]]
+FeatureOverride: TypeAlias = FeatureIncludeOverride | FeatureFragmentOverride | FeatureRepoOverride
 
 
 @dataclass
