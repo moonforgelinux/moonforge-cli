@@ -41,10 +41,6 @@ FeatureIncludeOverride: TypeAlias = dict[str, list[FeatureInclude]]
 FeatureFragmentOverride: TypeAlias = dict[str, list[FeatureFragment]]
 FeatureRepoOverride: TypeAlias = dict[str, list[FeatureRepo]]
 FeatureOverride: TypeAlias = FeatureIncludeOverride | FeatureFragmentOverride | FeatureRepoOverride
-# type FeatureIncludeOverride = dict[str, list[FeatureInclude]]
-# type FeatureFragmentOverride = dict[str, list[FeatureFragment]]
-# type FeatureRepoOverride = dict[str, list[FeatureRepo]]
-# type FeatureOverride = FeatureIncludeOverride | FeatureFragmentOverride | FeatureRepoOverride
 
 
 @dataclass
