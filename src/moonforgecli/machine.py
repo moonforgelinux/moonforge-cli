@@ -16,6 +16,7 @@ Each machine can be used in a Moonforge project at initialization time.
 def add_args(parser) -> None:
     parser.add_argument("action", choices=["info", "list"], help="action to perform")
     parser.add_argument("machines", nargs="*", help="optional machines", default=[])
+    parser.add_argument("--plain", action="store_true", help="plain output")
 
 
 def run(options) -> int:
@@ -27,14 +28,19 @@ def run(options) -> int:
                 option = term.option("info")
                 print(f"{heading} {command} {option} MACHINE ...")
                 return 1
-            res = [term.heading(text="Available machines:")]
-            max_name_len = 0
-            for m in available_machines():
-                max_name_len = len(m.name) if len(m.name) > max_name_len else max_name_len
-            for m in available_machines():
-                name = term.option(m.name)
-                pad = " ".ljust(max_name_len - len(m.name) + 1)
-                res.append(f"- {name}:{pad}{m.description}")
+            res = []
+            if options.plain:
+                for m in available_machines():
+                    res.append(m.name)
+            else:
+                res.append(term.heading(text="Available machines:"))
+                max_name_len = 0
+                for m in available_machines():
+                    max_name_len = len(m.name) if len(m.name) > max_name_len else max_name_len
+                for m in available_machines():
+                    name = term.option(m.name)
+                    pad = " ".ljust(max_name_len - len(m.name) + 1)
+                    res.append(f"- {name}:{pad}{m.description}")
             print("\n".join(res))
         case "info":
             if len(options.machines) == 0:

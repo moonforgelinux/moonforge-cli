@@ -16,6 +16,7 @@ Each feature can be used in a Moonforge project at initialization time.
 def add_args(parser) -> None:
     parser.add_argument("action", choices=["info", "list"], help="action to perform")
     parser.add_argument("features", nargs="*", help="optional list of features to query", default=[])
+    parser.add_argument("--plain", action="store_true", help="plain output")
 
 
 def run(options) -> int:
@@ -27,14 +28,19 @@ def run(options) -> int:
                 option = term.option("feature")
                 print(f"{heading} {command} {option} list")
                 return 1
-            res = [term.heading(text="Available features:")]
-            max_name_len = 0
-            for f in available_features():
-                max_name_len = len(f.name) if len(f.name) > max_name_len else max_name_len
-            for f in available_features():
-                name = term.option(f.name)
-                pad = " ".ljust(max_name_len - len(f.name) + 1)
-                res.append(f"- {name}:{pad}{f.description}")
+            res = []
+            if options.plain:
+                for f in available_features():
+                    res.append(f.name)
+            else:
+                res.append(term.heading(text="Available features:"))
+                max_name_len = 0
+                for f in available_features():
+                    max_name_len = len(f.name) if len(f.name) > max_name_len else max_name_len
+                for f in available_features():
+                    name = term.option(f.name)
+                    pad = " ".ljust(max_name_len - len(f.name) + 1)
+                    res.append(f"- {name}:{pad}{f.description}")
             print("\n".join(res))
         case "info":
             if len(options.features) == 0:
