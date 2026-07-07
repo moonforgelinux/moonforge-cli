@@ -5,18 +5,20 @@ A small CLI utility that manages Moonforge-based projects.
 
 ## Installation
 
-You can run moonforge-cli uninstalled from the cloned repository, using the
+You should set up a virtualenv and use `pip` to install from the cloned repository:
+
+```sh
+$ cd moonforge-cli
+$ python3 -m venv .venv
+$ source .venv/bin/activate
+$ pip install -e .
+```
+
+You can also run moonforge-cli uninstalled from the cloned repository, using the
 `moonforge.py` wrapper, e.g.
 
 ```sh
 $ Project/moonforge-cli/moonforge.py init --name=derivative ~/Projects/meta-derivative
-```
-
-You can also use `pip` to install from the cloned repository:
-
-```sh
-$ cd moonforge-cli
-$ pip3 install --user -e .
 ```
 
 ## Using moonforge-cli
