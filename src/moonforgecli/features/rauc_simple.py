@@ -71,5 +71,10 @@ RAUC_FEATURE = Feature(
             description="Reboot on update",
             default="1",
         ),
+        FeatureVariable(
+            name="RAUC_BUNDLE_URL",
+            description="The location of the RAUC update bundle",
+            default="http://10.0.2.2:3333/LATEST.raucb",
+        ),
     ],
 )
