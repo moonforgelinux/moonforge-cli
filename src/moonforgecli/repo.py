@@ -96,13 +96,16 @@ def run(options) -> int:
             res = [term.heading(text="Repositories:")]
             for name in repos:
                 repo = repos[name]
+                url = repo["url"]
+                commit = repo["commit"]
+                branch = repo["branch"]
                 pad = " ".ljust(max_name_len - len(name) + 1)
                 extra_pad = " ".ljust(max_name_len + 1)
-                res.append(f"- {term.option(name)}:{pad}{repo['url']}")
-                res.append(f"  {extra_pad} {term.bold("commit:")} {repo['commit']}")
-                res.append(f"  {extra_pad} {term.bold("branch:")} {repo['branch']}")
+                res.append(f"- {term.option(name)}:{pad}{url}")
+                res.append(f"  {extra_pad} {term.bold('commit:')} {commit}")
+                res.append(f"  {extra_pad} {term.bold('branch:')} {branch}")
                 if repo["required"]:
-                    res.append(f"  {extra_pad} {term.bold("required:")} {term.green("yes")}")
+                    res.append(f"  {extra_pad} {term.bold('required:')} {term.green('yes')}")
             print("\n".join(res))
         case "add":
             if not options.name:

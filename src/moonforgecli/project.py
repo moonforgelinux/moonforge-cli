@@ -212,10 +212,16 @@ class Project:
         if len(self.repos) > 0:
             for name in self.repos:
                 repo = self.repos[name]
+                url = repo["url"]
+                url = f'url = "{url}"'
+                commit = repo["commit"]
+                commit = f'commit = "{commit}"'
+                branch = repo["branch"]
+                branch = f'branch = "{branch}"'
                 if repo["required"]:
-                    res.append(f'repos."{name}" = {{ required = true, url = "{repo['url']}", commit = "{repo['commit']}", branch = "{repo['branch']}" }}')  # noqa: E501
+                    res.append(f'repos."{name}" = {{ required = true, {url}, {commit}, {branch} }}')  # noqa: E501
                 else:
-                    res.append(f'repos."{name}" = {{ url = "{repo['url']}", commit = "{repo['commit']}", branch = "{repo['branch']}" }}')  # noqa: E501
+                    res.append(f'repos."{name}" = {{ {url}, {commit}, {branch} }}')  # noqa: E501
         return "\n".join(res)
 
     def safe_path_replace(self, path: str) -> Path:
