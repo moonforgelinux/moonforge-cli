@@ -33,9 +33,10 @@ MACHINE_META: dict[str, str] = {
 EDITIONS: dict[str, list[str]] = {
     "2026.1": [
         "edition",
-        "name",
-        "machine",
         "features",
+        "machine",
+        "name",
+        "repos",
         "variables",
         "vcs",
     ],
@@ -54,6 +55,7 @@ class Project:
         self._features = kwargs.get("features", [])
         self._variables = kwargs.get("variables", {})
         self._vcs = kwargs.get("vcs", "none")
+        self._repos = kwargs.get("repos", {})
 
     @property
     def name(self) -> str:
@@ -89,9 +91,31 @@ class Project:
     def edition(self) -> str:
         return self._edition
 
+    @property
+    def repos(self) -> dict[str, dict[str, str]]:
+        return self._repos
+
+    def add_repo(self, name: str, url: str, commit: str, branch: str, required: bool = False) -> None:
+        self._repos[name] = {
+            "url": url,
+            "commit": commit,
+            "branch": branch,
+            "required": required,
+        }
+
+    def remove_repo(self, name: str) -> None:
+        try:
+            repo = self._repos[name]
+            if repo["required"]:
+                log.error(f"Repository {name} is required and cannot be removed")
+            del self._repos[name]
+        except KeyError:
+            log.error(f"Could not remove repository {name}")
+
     def to_kas(self) -> str:
         kf = kas.KasFile()
-        kf.add_include(repo=None, file="kas/include/repo/meta-moonforge.yml")
+        for name in self._repos:
+            kf.add_include(repo=None, file=f"kas/include/repo/{name}.yml")
         kf.add_include(repo="meta-moonforge", file="kas/include/layer/meta-moonforge-distro.yml")
         kf.add_local_repo(name=f"{self.local_repo_name}", layers=[f"{self.local_repo_name}-distro"])
         kf.set_distro(self._name)
@@ -129,10 +153,8 @@ class Project:
                     match field:
                         case "machine":
                             args["machine"] = get_machine(source["machine"])
-
                         case "features":
                             args["features"] = [get_feature(x) for x in source.get("features", [])]
-
                         case "variables":
                             variables = {}
                             for var in source.get("variables", []):
@@ -142,7 +164,21 @@ class Project:
                                 except ValueError:
                                     log.warning(f"Invalid variable {var} in project.toml")
                             args["variables"] = variables
-
+                        case "repos":
+                            source_repos = source.get("repos", {})
+                            repos = {}
+                            for name in source_repos:
+                                if not all(k in source_repos[name] for k in ("url", "commit", "branch")):
+                                    log.warning(f"Invalid repository {name} in project.toml")
+                                    continue
+                                repo = source_repos[name]
+                                repos[name] = {
+                                    "url": repo["url"],
+                                    "commit": repo["commit"],
+                                    "branch": repo["branch"],
+                                    "required": repo.get("required", False),
+                                }
+                            args["repos"] = repos
                         case _:
                             args[field] = source.get(field)
                 return args
@@ -173,6 +209,13 @@ class Project:
             variables.append(f'"{key}={self._variables[key]}"')
         if len(variables) > 0:
             res.append(f"variables = [ {', '.join(variables)} ]")
+        if len(self.repos) > 0:
+            for name in self.repos:
+                repo = self.repos[name]
+                if repo["required"]:
+                    res.append(f'repos."{name}" = {{ required = true, url = "{repo['url']}", commit = "{repo['commit']}", branch = "{repo['branch']}" }}')  # noqa: E501
+                else:
+                    res.append(f'repos."{name}" = {{ url = "{repo['url']}", commit = "{repo['commit']}", branch = "{repo['branch']}" }}')  # noqa: E501
         return "\n".join(res)
 
     def safe_path_replace(self, path: str) -> Path:
