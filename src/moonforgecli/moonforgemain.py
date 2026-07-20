@@ -9,7 +9,7 @@ import traceback
 from dataclasses import dataclass
 
 from . import log
-from . import build, config, feature, init, machine, shell
+from . import build, config, feature, init, machine, repo, shell
 
 
 VERSION = "2026.1"
@@ -71,6 +71,12 @@ class MoonforgeApp:
                          help_msg=shell.HELP_MSG,
                          help_desc=shell.HELP_DESCRIPTION,
                          aliases=["sh"])
+        self.add_command('repository',
+                         add_args_func=repo.add_args,
+                         run_func=repo.run,
+                         help_msg=repo.HELP_MSG,
+                         help_desc=repo.HELP_DESCRIPTION,
+                         aliases=["repo"])
 
     def run(self, args):
         """

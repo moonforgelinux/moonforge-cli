@@ -185,6 +185,12 @@ def add_kas_dir(project: Project) -> None:
                                           branch=META_MOONFORGE_BRANCH))
 
     log.info(f"Creating kas configuration for {project.name}")
+    project.add_repo(
+        name="meta-moonforge",
+        url=META_MOONFORGE_URL,
+        commit=META_MOONFORGE_COMMIT,
+        branch=META_MOONFORGE_BRANCH,
+    )
     with open(kas_path / f"{project_name}-image-base-{project.machine.name}.yml", "w", encoding="utf-8") as f:
         f.write(project.to_kas())
 
@@ -199,9 +205,6 @@ def init_vcs(project: Project) -> None:
             log.warning("Unable to find git in the path")
             return
         args += [git_bin, "init", str(project.path)]
-
-        with open(project.path / ".gitignore", "w", encoding="utf-8") as f:
-            f.write("/build")
 
     try:
         log.info(f"Initializing {project.vcs} repository")
