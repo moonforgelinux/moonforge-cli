@@ -44,6 +44,34 @@ EDITIONS: dict[str, list[str]] = {
 EDITION_DEFAULT = "2026.1"
 
 
+class Image:
+    """The metadata for a Moonforge image."""
+    def __init__(self, machine: Machine, features: list[Feature] | None):
+        self._machine = machine
+        self._features = features or []
+
+    @property
+    def machine(self) -> Machine:
+        return self._machine
+
+    @property
+    def features(self) -> list[Feature]:
+        return self._features
+
+    def to_toml(self) -> str:
+        res = ["{"]
+        res.append(f'machine = "{self._machine.name}"')
+        if len(self._features) != 0:
+            res.append(', features = [ ')
+            features = []
+            for feat in self._features:
+                features.append(feat.name)
+            res.append(", ".join(features))
+            res.append("]")
+        res.append("}")
+        return " ".join(res)
+
+
 class Project:
     """The metadata for a Moonforge project."""
     def __init__(self, **kwargs):
