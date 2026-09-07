@@ -17,14 +17,14 @@ GRAPHICS_WPE_FEATURE = Feature(
         FeatureFragment(
             section="meta-moonforge-wpe",
             weight=30,
-            key="WAYLAND_COG_LAUNCH_URL",
+            key="WPE_SIMPLE_LAUNCHER_URL",
             value="http://10.0.2.2:8080",
         ),
     ],
     conflicts=["graphics-weston"],
     variables=[
         FeatureVariable(
-            name="WAYLAND_COG_LAUNCH_URL",
+            name="WPE_SIMPLE_LAUNCHER_URL",
             description="The URL to display at boot",
             default="http://10.0.2.2:8080",
         ),
