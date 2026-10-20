@@ -22,6 +22,7 @@ class ContainerCommand(Enum):
 
 def setup_container(
     project: Project,
+    image: str,
     source: ConfigSource,
     command: ContainerCommand,
     interactive: bool = False,
@@ -32,15 +33,18 @@ def setup_container(
 ) -> int:
     log.debug(f"Container engine: {source['container.engine']}")
 
-    kas_file = f"{project.name}-image-base-{project.machine.name}.yml"
+    try:
+        kas_file = f"{project.name}-image-{image}-{project.get_image(image).machine.name}.yml"
+    except IndexError as err:
+        log.error(err)
     log.debug(f"KAS file: {kas_file}")
 
     container_image = f"{source['container.image_path']}/{source['container.image_name']}:{source['container.image_version']}"
     log.debug(f"KAS container image: {container_image}")
 
-    sstate_dir = project.safe_path_replace(source["build.sstate_dir"])
+    sstate_dir = project.safe_path_replace(source["build.sstate_dir"], image)
     log.debug(f"SSTATE_DIR = {sstate_dir}")
-    dl_dir = project.safe_path_replace(source["build.download_dir"])
+    dl_dir = project.safe_path_replace(source["build.download_dir"], image)
     log.debug(f"DL_DIR = {dl_dir}")
 
     if work_dir is None:
