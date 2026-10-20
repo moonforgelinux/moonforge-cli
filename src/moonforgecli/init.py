@@ -171,8 +171,6 @@ def add_meta_dir(project: Project) -> None:
 
 
 def add_kas_dir(project: Project) -> None:
-    project_name = utils.sanitize_project_name(project.name)
-
     kas_path = project.path / "kas"
     os.makedirs(kas_path, exist_ok=True)
 
@@ -185,8 +183,7 @@ def add_kas_dir(project: Project) -> None:
                                           branch=META_MOONFORGE_BRANCH))
 
     log.info(f"Creating kas configuration for {project.name}")
-    with open(kas_path / f"{project_name}-image-base-{project.machine.name}.yml", "w", encoding="utf-8") as f:
-        f.write(project.to_kas())
+    project.to_kas(kas_path)
 
 
 def init_vcs(project: Project) -> None:
@@ -252,7 +249,7 @@ def run(options):
     if path.exists() and not path.is_dir():
         log.error(f"Project path {path} exists and is not a directory.")
     try:
-        machine = get_machine(options.machine)
+        _ = get_machine(options.machine)
     except IndexError:
         log.error(f"Invalid target machine {options.machine}. "
                   f"Use {term.command('machine')} to list the available machines.")
@@ -287,9 +284,9 @@ def run(options):
         edition=EDITION_DEFAULT,
         name=project_name,
         path=path,
-        machine=machine,
-        features=features,
-        variables=variables,
+        machine=options.machine,
+        features=options.features,
+        variables=options.variables,
         vcs=options.vcs,
     )
     return init_project(project)
