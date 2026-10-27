@@ -6,10 +6,8 @@ import subprocess
 
 from pathlib import Path
 
-from . import log, term, utils
+from . import log, utils
 from .config import ConfigSource, ConfigSourceType
-from .features import check_conflicts, get_feature
-from .machines import get_machine
 from .project import Project, EDITION_DEFAULT
 
 
@@ -248,38 +246,9 @@ def run(options):
     path = Path(project_path)
     if path.exists() and not path.is_dir():
         log.error(f"Project path {path} exists and is not a directory.")
-    try:
-        _ = get_machine(options.machine)
-    except IndexError:
-        log.error(f"Invalid target machine {options.machine}. "
-                  f"Use {term.command('machine')} to list the available machines.")
-    features = []
-    for feat in options.features:
-        try:
-            f = get_feature(feat)
-        except IndexError:
-            log.error(f"Invalid feature {feat}. "
-                      f"Use {term.command('feature')} to list the available features.")
-        conflicts = check_conflicts(feat, options.features)
-        if len(conflicts) > 0:
-            res = ", ".join(conflicts)
-            log.error(f"Feature {feat} conflicts with the following features: {res}")
-        features.append(f)
-    variables = {}
-    for var in options.variables:
-        try:
-            (key, value) = var.split("=", 1)
-        except ValueError as err:
-            log.error(f"Invalid variable '{var}': {err}")
-        found = False
-        for feat in features:
-            for var in feat.variables:
-                if var.name == key:
-                    found = True
-                    break
-        if not found:
-            log.error(f"Variable {key} is not part of any feature")
-        variables[key] = value
+    utils.validate_machine(options.machine)
+    utils.validate_features(options.features)
+    utils.validate_variables(options.variables, options.features)
     project = Project(
         edition=EDITION_DEFAULT,
         name=project_name,
