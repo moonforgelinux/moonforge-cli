@@ -32,16 +32,68 @@ MACHINE_META: dict[str, str] = {
 
 EDITIONS: dict[str, list[str]] = {
     "2026.1": [
+        "default_image",
         "edition",
+        "images",
         "name",
-        "machine",
-        "features",
-        "variables",
         "vcs",
     ],
 }
 
 EDITION_DEFAULT = "2026.1"
+
+
+class Image:
+    """Metadata associated to an image."""
+    def __init__(self, **kwargs):
+        self._name = kwargs.get("name", "base")
+        self._machine = kwargs.get("machine", "qemux86-64")
+        self._features = kwargs.get("features", [])
+        self._variables = kwargs.get("variables", [])
+        self._is_default = kwargs.get("default", False)
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def machine(self) -> Machine:
+        return get_machine(self._machine)
+
+    @property
+    def features(self) -> list[Feature]:
+        return [get_feature(x) for x in self._features]
+
+    @property
+    def variables(self) -> dict[str, str]:
+        variables = {}
+        for var in self._variables:
+            try:
+                key, value = var.split("=", 1)
+                variables[key] = value
+            except ValueError:
+                log.warning(f"Invalid variable {var} in project.toml")
+        return variables
+
+    @property
+    def is_default(self) -> bool:
+        return self._is_default
+
+    def to_toml(self) -> list[str]:
+        res = []
+        res.append(f'name = "{self.name}"')
+        res.append(f'machine = "{self.machine.name}"')
+        features = []
+        for feat in self.features:
+            features.append(f'"{feat.name}"')
+        if len(features) > 0:
+            res.append(f"features = [ {', '.join(features)} ]")
+        variables = []
+        for key in self.variables:
+            variables.append(f'"{key}={self._variables[key]}"')
+        if len(variables) > 0:
+            res.append(f"variables = [ {', '.join(variables)} ]")
+        return res
 
 
 class Project:
@@ -50,10 +102,20 @@ class Project:
         self._edition = kwargs.get("edition", EDITION_DEFAULT)
         self._name = kwargs.get("name")
         self._path = kwargs.get("path")
-        self._machine = kwargs.get("machine")
-        self._features = kwargs.get("features", [])
-        self._variables = kwargs.get("variables", {})
         self._vcs = kwargs.get("vcs", "none")
+        self._images = kwargs.get("images", [])
+        self._default_image = kwargs.get("default_image", "base")
+
+        # If we don't get a machine, we construct one by default
+        if len(self._images) == 0:
+            img_args = {
+                "name": "base",
+                "machine": kwargs.get("machine", "qemux86-64"),
+                "features": kwargs.get("features", []),
+                "variables": kwargs.get("variables", []),
+                "is_default": True,
+            }
+            self._images.append(Image(**img_args))
 
     @property
     def name(self) -> str:
@@ -64,16 +126,8 @@ class Project:
         return self._path
 
     @property
-    def machine(self) -> Machine:
-        return self._machine
-
-    @property
-    def features(self) -> list[Feature]:
-        return self._features
-
-    @property
-    def variables(self) -> dict[str, str]:
-        return self._variables
+    def images(self) -> list[Image]:
+        return self._images
 
     @property
     def local_repo_name(self) -> str:
@@ -89,18 +143,36 @@ class Project:
     def edition(self) -> str:
         return self._edition
 
-    def to_kas(self) -> str:
-        kf = kas.KasFile()
-        kf.add_include(repo=None, file="kas/include/repo/meta-moonforge.yml")
-        kf.add_include(repo="meta-moonforge", file="kas/include/layer/meta-moonforge-distro.yml")
-        kf.add_local_repo(name=f"{self.local_repo_name}", layers=[f"{self.local_repo_name}-distro"])
-        kf.set_distro(self._name)
-        kf.set_machine(self._machine)
-        for feat in self._features:
-            kf.add_feature(feat)
-        for key in self._variables:
-            kf.add_variable(key, self._variables[key])
-        return str(kf)
+    def get_image(self, image: str) -> Image:
+        for img in self._images:
+            if img.name == image:
+                return img
+        raise IndexError(f"No image {image} found")
+
+    def add_image(self, image: Image):
+        self._images.append(image)
+
+    def remove_image(self, image: Image):
+        self._images.remove(image)
+
+    def to_kas(self, path: Path):
+        """Writes the project kas files under @path."""
+        project_name = utils.sanitize_project_name(self.name)
+
+        for img in self._images:
+            kf = kas.KasFile()
+            kf.add_include(repo=None, file="kas/include/repo/meta-moonforge.yml")
+            kf.add_include(repo="meta-moonforge", file="kas/include/layer/meta-moonforge-distro.yml")
+            kf.add_local_repo(name=f"{self.local_repo_name}", layers=[f"{self.local_repo_name}-distro"])
+            kf.set_distro(self._name)
+            kf.set_machine(img.machine)
+            for feat in img.features:
+                kf.add_feature(feat)
+            for key in img.variables:
+                kf.add_variable(key, img.variables[key])
+
+            with open(path / f"{project_name}-image-{img.name}-{img.machine.name}.yml", "w", encoding="utf-8") as f:
+                f.write(str(kf))
 
     @classmethod
     def from_toml(cls, path: Path) -> "Project":
@@ -127,22 +199,6 @@ class Project:
                 args = {}
                 for field in EDITIONS["2026.1"]:
                     match field:
-                        case "machine":
-                            args["machine"] = get_machine(source["machine"])
-
-                        case "features":
-                            args["features"] = [get_feature(x) for x in source.get("features", [])]
-
-                        case "variables":
-                            variables = {}
-                            for var in source.get("variables", []):
-                                try:
-                                    key, value = var.split("=", 1)
-                                    variables[key] = value
-                                except ValueError:
-                                    log.warning(f"Invalid variable {var} in project.toml")
-                            args["variables"] = variables
-
                         case _:
                             args[field] = source.get(field)
                 return args
@@ -153,29 +209,29 @@ class Project:
                 case _:
                     log.error(f"Unknown edition {edition}")
 
+            images = []
+            for img_data in data["images"]:
+                images.append(Image(**img_data))
+
+            kwargs["images"] = images
+
             return cls(path=path, **kwargs)
 
-    def to_toml(self) -> str:
+    def to_toml(self, path: Path):
+        """Writes the project metadata file under @path."""
         res = [
             "[project]",
             f'edition = "{self.edition}"',
             f'name = "{self.name}"',
         ]
-        if self._machine is not None:
-            res.append(f'machine = "{self.machine.name}"')
-        features = []
-        for feat in self.features:
-            features.append(f'"{feat.name}"')
-        if len(features) > 0:
-            res.append(f"features = [ {', '.join(features)} ]")
-        variables = []
-        for key in self.variables:
-            variables.append(f'"{key}={self._variables[key]}"')
-        if len(variables) > 0:
-            res.append(f"variables = [ {', '.join(variables)} ]")
-        return "\n".join(res)
+        for img in self._images:
+            res.extend(["", "[[images]]"])
+            res.extend(img.to_toml())
 
-    def safe_path_replace(self, path: str) -> Path:
+        with open(path / "project.toml", "w", encoding="utf-8") as f:
+            f.write("\n".join(res))
+
+    def safe_path_replace(self, path: str, image: str) -> Path:
         """Replace known variables inside paths."""
         res = path
         for env in SAFE_PATHS:
@@ -184,8 +240,20 @@ class Project:
         for env in PROJECT_META:
             data = getattr(self, PROJECT_META[env], "")
             res = res.replace(f"@{env}@", data)
-        if self.machine is not None:
-            for env in MACHINE_META:
-                data = getattr(self.machine, MACHINE_META[env], "")
-                res = res.replace(f"@{env}@", data)
+        for img in self.images:
+            if img.name == image:
+                if img.machine is not None:
+                    for env in MACHINE_META:
+                        data = getattr(img.machine, MACHINE_META[env], "")
+                        res = res.replace(f"@{env}@", data)
         return Path(res)
+
+    def update_and_save(self):
+        """Regenerate and save the project files."""
+        log.info(f"Updating project configuration for {self.name}")
+        meta_path = self.path / ".moonforge"
+        self.to_toml(meta_path)
+
+        log.info(f"Creating kas configuration for {self.name}")
+        kas_path = self.path / "kas"
+        self.to_kas(kas_path)

@@ -50,14 +50,16 @@ Examples:
 
 def build_project(
     project: Project,
+    image: str,
     source: ConfigSource,
     fragments: list[Path],
     runtime_args: str | None,
 ) -> int:
-    log.info(f"Building project {project.name} at {project.path}")
+    log.info(f"Building {image} for project {project.name} at {project.path}")
 
     return container.setup_container(
         project,
+        image,
         source,
         container.ContainerCommand.BUILD,
         interactive=False,
@@ -68,6 +70,8 @@ def build_project(
 
 
 def add_args(parser):
+    parser.add_argument("--image", metavar="NAME", default="base",
+                        help="The image to build")
     parser.add_argument("--fragment", metavar="FILE", dest="fragments",
                         action="append", default=[], help="additional kas fragments")
     parser.add_argument("--runtime-args", help="additional arguments for the container runtime")
@@ -92,4 +96,4 @@ def run(options):
         except OSError as err:
             log.error(f"Unable to resolve fragment {frag}: {err}")
         fragments.append(p)
-    return build_project(project, source, fragments, options.runtime_args)
+    return build_project(project, options.image, source, fragments, options.runtime_args)
