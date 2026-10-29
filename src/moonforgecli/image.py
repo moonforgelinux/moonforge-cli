@@ -72,15 +72,7 @@ def run(options) -> int:
                 "variables": options.variables,
             }
             project.add_image(Image(**img_args))
-
-            log.info(f"Updating project configuration for {project.name}")
-            meta_path = project.path / ".moonforge"
-            with open(meta_path / "project.toml", "w", encoding="utf-8") as f:
-                f.write(project.to_toml())
-
-            kas_path = project.path / "kas"
-            log.info(f"Creating kas configuration for {project.name}")
-            project.to_kas(kas_path)
+            project.update_and_save()
 
         case "remove":
             found = False
@@ -93,13 +85,6 @@ def run(options) -> int:
             if not found:
                 log.error(f"Unknown image {options.name}")
 
-            log.info(f"Updating project configuration for {project.name}")
-            meta_path = project.path / ".moonforge"
-            with open(meta_path / "project.toml", "w", encoding="utf-8") as f:
-                f.write(project.to_toml())
-
-            kas_path = project.path / "kas"
-            log.info(f"Creating kas configuration for {project.name}")
-            project.to_kas(kas_path)
+            project.update_and_save()
 
     return 0

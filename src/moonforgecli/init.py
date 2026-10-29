@@ -157,11 +157,9 @@ def add_conf_dir(project: Project) -> None:
 
 def add_meta_dir(project: Project) -> None:
     log.info(f"Creating project metadata for {project.name}")
-
     meta_path = project.path / ".moonforge"
     os.makedirs(meta_path, exist_ok=True)
-    with open(meta_path / "project.toml", "w", encoding="utf-8") as f:
-        f.write(project.to_toml())
+    project.to_toml(meta_path)
 
     log.info(f"Creating core configuration for {project.name}")
     config = ConfigSource(ConfigSourceType.PROJECT)

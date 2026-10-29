@@ -156,7 +156,7 @@ class Project:
         self._images.remove(image)
 
     def to_kas(self, path: Path):
-        """Writes the project image files under @path."""
+        """Writes the project kas files under @path."""
         project_name = utils.sanitize_project_name(self.name)
 
         for img in self._images:
@@ -217,7 +217,8 @@ class Project:
 
             return cls(path=path, **kwargs)
 
-    def to_toml(self) -> str:
+    def to_toml(self, path: Path):
+        """Writes the project metadata file under @path."""
         res = [
             "[project]",
             f'edition = "{self.edition}"',
@@ -226,7 +227,9 @@ class Project:
         for img in self._images:
             res.extend(["", "[[images]]"])
             res.extend(img.to_toml())
-        return "\n".join(res)
+
+        with open(path / "project.toml", "w", encoding="utf-8") as f:
+            f.write("\n".join(res))
 
     def safe_path_replace(self, path: str, image: str) -> Path:
         """Replace known variables inside paths."""
@@ -244,3 +247,13 @@ class Project:
                         data = getattr(img.machine, MACHINE_META[env], "")
                         res = res.replace(f"@{env}@", data)
         return Path(res)
+
+    def update_and_save(self):
+        """Regenerate and save the project files."""
+        log.info(f"Updating project configuration for {self.name}")
+        meta_path = self.path / ".moonforge"
+        self.to_toml(meta_path)
+
+        log.info(f"Creating kas configuration for {self.name}")
+        kas_path = self.path / "kas"
+        self.to_kas(kas_path)
