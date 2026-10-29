@@ -15,7 +15,7 @@ RPI5_MACHINE = Machine(
     local_conf=[
         MachineFragment(
             section="meta-moonforge-raspberrypi",
-            weight=20,
+            weight=30,
             key="WKS_FILE",
             value="moonforge-image-base-raspberrypi.wks.in",
         ),
