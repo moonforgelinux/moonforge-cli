@@ -147,9 +147,16 @@ def setup_container(
 
     log.debug(f"cmdline: {' '.join(cmdline)}")
 
-    try:
-        proc = subprocess.run(cmdline)
-    except Exception as err:
-        log.error(f"Unable to run {command} for project: {err}")
+    with subprocess.Popen(cmdline) as process:
+        try:
+            stdout, stderr = process.communicate()
+        except KeyboardInterrupt:
+            process.kill()
+            log.error(f"{command} canceled.")
+        except Exception as err:
+            process.kill()
+            log.error(f"Unable to run {command}: {err}")
+        if retcode := process.poll() is not None:
+            return retcode
 
-    return proc.returncode
+    return -1
