@@ -6,8 +6,6 @@ import os
 from pathlib import Path
 
 from . import log, term, utils
-# from .features import available_features, get_feature
-# from .machines import available_machines, get_machine
 from .project import Image, Project
 
 
