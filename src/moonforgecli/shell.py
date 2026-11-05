@@ -50,6 +50,7 @@ Examples:
 
 def shell_setup(
     project: Project,
+    image: str,
     source: ConfigSource,
     fragments: list[Path],
     runtime_args: str | None,
@@ -58,6 +59,7 @@ def shell_setup(
 
     return container.setup_container(
         project,
+        image,
         source,
         container.ContainerCommand.SHELL,
         interactive=True,
@@ -68,6 +70,8 @@ def shell_setup(
 
 
 def add_args(parser):
+    parser.add_argument("--image", metavar="NAME", default="base",
+                        help="the image to use")
     parser.add_argument("--fragment", metavar="FILE", dest="fragments",
                         action="append", default=[], help="additional kas fragments")
     parser.add_argument("--runtime-args", help="additional arguments for the container runtime")
@@ -92,4 +96,4 @@ def run(options):
         except OSError as err:
             log.error(f"Unable to resolve fragment {frag}: {err}")
         fragments.append(p)
-    return shell_setup(project, source, fragments, options.runtime_args)
+    return shell_setup(project, options.image, source, fragments, options.runtime_args)

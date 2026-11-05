@@ -9,7 +9,7 @@ import traceback
 from dataclasses import dataclass
 
 from . import log
-from . import build, config, feature, init, machine, shell
+from . import build, config, feature, image, init, machine, shell
 
 
 VERSION = "2026.1"
@@ -71,6 +71,11 @@ class MoonforgeApp:
                          help_msg=shell.HELP_MSG,
                          help_desc=shell.HELP_DESCRIPTION,
                          aliases=["sh"])
+        self.add_command('image',
+                         add_args_func=image.add_args,
+                         run_func=image.run,
+                         help_msg=image.HELP_MSG,
+                         help_desc=image.HELP_DESCRIPTION)
 
     def run(self, args):
         """
