@@ -14,6 +14,23 @@ HELP_MSG = "Manage image files"
 HELP_DESCRIPTION = """The image command manages the image files for a Moonforge project.
 
 Each image can have a machine target and a set of features.
+
+Exaples:
+
+# Add a new image called 'variant'
+moonforge image add --name=variant
+
+# Add a new image for RaspberryPi 5 called 'devboard'
+moonforge image add --name=devboard --machine raspberrypi5
+
+# Add a new image for using the simple RAUC updater
+moonforge image add --name=updater --feature rauc-simple
+
+# Remove the 'variant' image
+moonforge image remove --name=variant
+
+# List all project images
+moonforge image list
 """  # noqa: E501
 
 
