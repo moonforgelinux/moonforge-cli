@@ -81,13 +81,15 @@ class Image:
         res.append(f'name = "{self.name}"')
         res.append(f'machine = "{self.machine.name}"')
         features = []
-        for feat in self.features:
+        img_features = self.features
+        for feat in img_features:
             features.append(f'"{feat.name}"')
         if len(features) > 0:
             res.append(f"features = [ {', '.join(features)} ]")
         variables = []
-        for key in self.variables:
-            variables.append(f'"{key}={self._variables[key]}"')
+        img_variables = self.variables
+        for key in img_variables:
+            variables.append(f'"{key}={img_variables[key]}"')
         if len(variables) > 0:
             res.append(f"variables = [ {', '.join(variables)} ]")
         return res
