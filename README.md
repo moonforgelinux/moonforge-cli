@@ -37,20 +37,20 @@ You can specify various features at initialization time:
 
 ```sh
 $ moonforge init \
-> --name=derivative \
-> --feature=rauc-simple \
-> --feature=podman \
-> Projects/meta-derivative
+--name=derivative \
+--feature=rauc-simple \
+--feature=podman \
+Projects/meta-derivative
 ```
 
 You can also set layer-specific variables at initialization time:
 
 ```sh
 $ moonforge init \
-> --name=webapp \
-> --feature=graphics-wpe \
-> --variable WAYLAND_COG_LAUNCH_URL=https://moonforgelinux.org \
-> Projects/webapp
+--name=webapp \
+--feature=graphics-wpe \
+--variable WAYLAND_COG_LAUNCH_URL=https://moonforgelinux.org \
+Projects/webapp
 ```
 
 #### Building
@@ -75,6 +75,25 @@ environment:
 
 ```sh
 $ moonforge shell .
+```
+
+#### Adding a new image
+
+Projects can have multiple images, each with different target machines,
+features, and layer-specific variables. You can add a new machine after
+initialization by using the `image` command:
+
+```sh
+$ moonforge image add \
+--name=embed \
+--machine=raspberrypi5
+Porjects/webapp
+```
+
+You can specify the image when building:
+
+```
+$ moonforge build --image=embed .
 ```
 
 Copyright and licensing terms
