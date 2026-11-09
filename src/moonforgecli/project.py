@@ -42,12 +42,16 @@ EDITIONS: dict[str, list[str]] = {
 
 EDITION_DEFAULT = "2026.1"
 
+IMAGE_DEFAULT = "base"
+
+MACHINE_DEFAULT = "qemux86-64"
+
 
 class Image:
     """Metadata associated to an image."""
     def __init__(self, **kwargs):
-        self._name = kwargs.get("name", "base")
-        self._machine = kwargs.get("machine", "qemux86-64")
+        self._name = kwargs.get("name", IMAGE_DEFAULT)
+        self._machine = kwargs.get("machine", MACHINE_DEFAULT)
         self._features = kwargs.get("features", [])
         self._variables = kwargs.get("variables", [])
         self._is_default = kwargs.get("default", False)
@@ -104,13 +108,13 @@ class Project:
         self._path = kwargs.get("path")
         self._vcs = kwargs.get("vcs", "none")
         self._images = kwargs.get("images", [])
-        self._default_image = kwargs.get("default_image", "base")
+        self._default_image = kwargs.get("default_image", IMAGE_DEFAULT)
 
         # If we don't get a machine, we construct one by default
         if len(self._images) == 0:
             img_args = {
-                "name": "base",
-                "machine": kwargs.get("machine", "qemux86-64"),
+                "name": IMAGE_DEFAULT,
+                "machine": kwargs.get("machine", MACHINE_DEFAULT),
                 "features": kwargs.get("features", []),
                 "variables": kwargs.get("variables", []),
                 "is_default": True,

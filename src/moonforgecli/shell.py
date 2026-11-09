@@ -7,7 +7,7 @@ from pathlib import Path
 
 from . import container, log
 from .config import ConfigSource
-from .project import Project
+from .project import Project, IMAGE_DEFAULT
 
 
 HELP_MSG = "Run a shell in the build environment of a Moonforge project"
@@ -70,7 +70,7 @@ def shell_setup(
 
 
 def add_args(parser):
-    parser.add_argument("--image", metavar="NAME", default="base",
+    parser.add_argument("--image", metavar="NAME", default=IMAGE_DEFAULT,
                         help="the image to use")
     parser.add_argument("--fragment", metavar="FILE", dest="fragments",
                         action="append", default=[], help="additional kas fragments")

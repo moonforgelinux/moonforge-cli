@@ -7,7 +7,7 @@ from pathlib import Path
 
 from . import container, log
 from .config import ConfigSource
-from .project import Project
+from .project import Project, IMAGE_DEFAULT
 
 
 HELP_MSG = "Build a Moonforge project"
@@ -71,7 +71,7 @@ def build_project(
 
 
 def add_args(parser):
-    parser.add_argument("--image", metavar="NAME", default="base",
+    parser.add_argument("--image", metavar="NAME", default=IMAGE_DEFAULT,
                         help="The image to build")
     parser.add_argument("--fragment", metavar="FILE", dest="fragments",
                         action="append", default=[], help="additional kas fragments")
