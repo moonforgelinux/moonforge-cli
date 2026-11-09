@@ -61,7 +61,8 @@ def run(options) -> int:
             res = [term.heading(text="Available images:")]
             for img in project.images:
                 name = term.option(img.name)
-                res.append(f"- {name}:")
+                is_default = " (default)" if project.default_image == img.name else ""
+                res.append(f"- {name}{is_default}:")
                 res.append(f"  machine: {img.machine.name}")
                 if len(img.features) > 0:
                     res.append("  features: ")

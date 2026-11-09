@@ -33,8 +33,6 @@ MACHINE_META: dict[str, str] = {
 EDITIONS: dict[str, list[str]] = {
     "2026.1": [
         "default_image",
-        "edition",
-        "images",
         "name",
         "vcs",
     ],
@@ -54,7 +52,6 @@ class Image:
         self._machine = kwargs.get("machine", MACHINE_DEFAULT)
         self._features = kwargs.get("features", [])
         self._variables = kwargs.get("variables", [])
-        self._is_default = kwargs.get("default", False)
 
     @property
     def name(self) -> str:
@@ -78,10 +75,6 @@ class Image:
             except ValueError:
                 log.warning(f"Invalid variable {var} in project.toml")
         return variables
-
-    @property
-    def is_default(self) -> bool:
-        return self._is_default
 
     def to_toml(self) -> list[str]:
         res = []
@@ -117,7 +110,6 @@ class Project:
                 "machine": kwargs.get("machine", MACHINE_DEFAULT),
                 "features": kwargs.get("features", []),
                 "variables": kwargs.get("variables", []),
-                "is_default": True,
             }
             self._images.append(Image(**img_args))
 
@@ -159,6 +151,13 @@ class Project:
     def remove_image(self, image: Image):
         self._images.remove(image)
 
+    @property
+    def default_image(self) -> str:
+        if self._default_image is None:
+            return IMAGE_DEFAULT
+        else:
+            return self._default_image
+
     def to_kas(self, path: Path):
         """Writes the project kas files under @path."""
         project_name = utils.sanitize_project_name(self.name)
@@ -193,8 +192,10 @@ class Project:
                 log.error(f"Invalid edition '{edition}' for the project file.")
 
             def validate_fields(check, edition_id, valid_fields):
+                all_fields = ["edition"]
+                all_fields.extend(valid_fields)
                 for field in check:
-                    if field not in valid_fields:
+                    if field not in all_fields:
                         log.error(f"Invalid field {field} for the given project edition {edition_id}")
 
             validate_fields(data["project"], edition, EDITIONS[edition])
@@ -227,6 +228,8 @@ class Project:
             "[project]",
             f'edition = "{self.edition}"',
             f'name = "{self.name}"',
+            f'default_image = "{self.default_image}"',
+            f'vcs = "{self.vcs}"',
         ]
         for img in self._images:
             res.extend(["", "[[images]]"])
