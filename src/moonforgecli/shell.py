@@ -35,16 +35,16 @@ The build artefacts are stored in the "build" directory.
 Examples:
 
 # Run a shell for the default image of the project in the current directory:
-moonforge shell .
+moonforge shell
 
 # Run a shell for the default image of the project in the Project/derivative directory:
 moonforge shell Project/derivative
 
 # Run a shell for the "test" image of the project the current directory:
-moonforge shell --image=test .
+moonforge shell --image=test
 
 # Run a shell for the default image of the project in the current directory, with an additional fragment:
-moonforge shell --fragment kas/common/debug.yml .
+moonforge shell --fragment kas/common/debug.yml
 
 """  # noqa: E501
 
@@ -75,7 +75,7 @@ def add_args(parser):
     parser.add_argument("--fragment", metavar="FILE", dest="fragments",
                         action="append", default=[], help="additional kas fragments")
     parser.add_argument("--runtime-args", help="additional arguments for the container runtime")
-    parser.add_argument("path", metavar="PATH", default=".",
+    parser.add_argument("path", metavar="PATH", default=".", nargs="?",
                         help="the path of the project")
 
 

@@ -43,7 +43,7 @@ def add_args(parser) -> None:
     parser.add_argument("--variable", metavar="KEY=VALUE", action="append",
                         dest="variables", default=[], help="layer variables")
     parser.add_argument("action", choices=["add", "remove", "list"], help="action to perform")
-    parser.add_argument("path", metavar="PATH", default=".",
+    parser.add_argument("path", metavar="PATH", default=".", nargs="?",
                         help="the path of the project")
 
 
