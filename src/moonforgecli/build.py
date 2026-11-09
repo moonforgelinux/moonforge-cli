@@ -34,17 +34,18 @@ The build artefacts are stored in the "build" directory.
 
 Examples:
 
-- Build the project in the current directory:
+# Build the base image of the project in the current directory:
+moonforge build
 
-    moonforge build .
+# Build the base image of the project in the Project/derivative directory:
+moonforge build Project/derivative
 
-- Build the project in the Project/derivative directory:
+# Build the test image of the project in the current directory:
+moonforge build --image=test
 
-    moonforge build Project/derivative
+# Build the base image of the project in the current directory, with an additional fragment:
+moonforge build --fragment kas/common/debug.yml
 
-- Build the project in the current directory, with an additional fragment:
-
-    moonforge build --fragment kas/common/debug.yml .
 """  # noqa: E501
 
 
