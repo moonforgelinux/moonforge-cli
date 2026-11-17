@@ -40,7 +40,7 @@ $ moonforge init \
 --name=derivative \
 --feature=rauc-simple \
 --feature=podman \
-Projects/meta-derivative
+~/Projects/meta-derivative
 ```
 
 You can also set layer-specific variables at initialization time:
@@ -50,7 +50,7 @@ $ moonforge init \
 --name=webapp \
 --feature=graphics-wpe \
 --variable WAYLAND_COG_LAUNCH_URL=https://moonforgelinux.org \
-Projects/webapp
+~/Projects/webapp
 ```
 
 #### Building
@@ -87,7 +87,7 @@ initialization by using the `image` command:
 $ moonforge image add \
 --name=embed \
 --machine=raspberrypi5
-Porjects/webapp
+~/Projects/webapp
 ```
 
 You can specify the image when building:
