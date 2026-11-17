@@ -34,22 +34,24 @@ The build artefacts are stored in the "build" directory.
 
 Examples:
 
-- Run a shell for the project in the current directory:
+# Run a shell for the default image of the project in the current directory:
+moonforge shell
 
-    moonforge shell .
+# Run a shell for the default image of the project in the Project/derivative directory:
+moonforge shell Project/derivative
 
-- Run a shell for the project in the Project/derivative directory:
+# Run a shell for the "test" image of the project the current directory:
+moonforge shell --image=test
 
-    moonforge shell Project/derivative
+# Run a shell for the default image of the project in the current directory, with an additional fragment:
+moonforge shell --fragment kas/common/debug.yml
 
-- Run a shell for the project in the current directory, with an additional fragment:
-
-    moonforge shell --fragment kas/common/debug.yml .
 """  # noqa: E501
 
 
 def shell_setup(
     project: Project,
+    image: str,
     source: ConfigSource,
     fragments: list[Path],
     runtime_args: str | None,
@@ -58,6 +60,7 @@ def shell_setup(
 
     return container.setup_container(
         project,
+        image,
         source,
         container.ContainerCommand.SHELL,
         interactive=True,
@@ -68,10 +71,11 @@ def shell_setup(
 
 
 def add_args(parser):
+    parser.add_argument("--image", metavar="NAME", help="the image to use")
     parser.add_argument("--fragment", metavar="FILE", dest="fragments",
                         action="append", default=[], help="additional kas fragments")
     parser.add_argument("--runtime-args", help="additional arguments for the container runtime")
-    parser.add_argument("path", metavar="PATH", default=".",
+    parser.add_argument("path", metavar="PATH", default=".", nargs="?",
                         help="the path of the project")
 
 
@@ -85,6 +89,10 @@ def run(options):
         log.error(f"Project path {path} exists and is not a directory.")
     project = Project.from_toml(path)
     source = ConfigSource.load_all(project_path=path)
+    if options.image is None:
+        image = project.default_image
+    else:
+        image = options.image
     fragments = []
     for frag in options.fragments:
         try:
@@ -92,4 +100,4 @@ def run(options):
         except OSError as err:
             log.error(f"Unable to resolve fragment {frag}: {err}")
         fragments.append(p)
-    return shell_setup(project, source, fragments, options.runtime_args)
+    return shell_setup(project, image, source, fragments, options.runtime_args)

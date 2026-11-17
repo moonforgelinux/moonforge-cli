@@ -34,30 +34,33 @@ The build artefacts are stored in the "build" directory.
 
 Examples:
 
-- Build the project in the current directory:
+# Build the default image of the project in the current directory:
+moonforge build
 
-    moonforge build .
+# Build the default image of the project in the Project/derivative directory:
+moonforge build Project/derivative
 
-- Build the project in the Project/derivative directory:
+# Build the "test" image of the project in the current directory:
+moonforge build --image=test
 
-    moonforge build Project/derivative
+# Build the default image of the project in the current directory, with an additional fragment:
+moonforge build --fragment kas/common/debug.yml
 
-- Build the project in the current directory, with an additional fragment:
-
-    moonforge build --fragment kas/common/debug.yml .
 """  # noqa: E501
 
 
 def build_project(
     project: Project,
+    image: str,
     source: ConfigSource,
     fragments: list[Path],
     runtime_args: str | None,
 ) -> int:
-    log.info(f"Building project {project.name} at {project.path}")
+    log.info(f"Building {image} for project {project.name} at {project.path}")
 
     return container.setup_container(
         project,
+        image,
         source,
         container.ContainerCommand.BUILD,
         interactive=False,
@@ -68,10 +71,11 @@ def build_project(
 
 
 def add_args(parser):
+    parser.add_argument("--image", metavar="NAME", help="The image to build")
     parser.add_argument("--fragment", metavar="FILE", dest="fragments",
                         action="append", default=[], help="additional kas fragments")
     parser.add_argument("--runtime-args", help="additional arguments for the container runtime")
-    parser.add_argument("path", metavar="PATH", default=".",
+    parser.add_argument("path", metavar="PATH", default=".", nargs="?",
                         help="the path of the project")
 
 
@@ -85,6 +89,10 @@ def run(options):
         log.error(f"Project path {path} exists and is not a directory.")
     project = Project.from_toml(path)
     source = ConfigSource.load_all(project_path=path)
+    if options.image is None:
+        image = project.default_image
+    else:
+        image = options.image
     fragments = []
     for frag in options.fragments:
         try:
@@ -92,4 +100,4 @@ def run(options):
         except OSError as err:
             log.error(f"Unable to resolve fragment {frag}: {err}")
         fragments.append(p)
-    return build_project(project, source, fragments, options.runtime_args)
+    return build_project(project, image, source, fragments, options.runtime_args)
